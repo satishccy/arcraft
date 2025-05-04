@@ -1,0 +1,25 @@
+.DS_Store
+.idea/
+# Webstorm
+*.iml
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# npm
+node_modules/
+
+# Testing files
+*.feature
+temp
+
+# Environment information
+examples/.env
+
+# Builds
+docs/
+built/
+
+# Caches
+.eslintcache
