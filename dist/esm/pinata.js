@@ -1,13 +1,15 @@
 /**
- * Universal Pinata file uploader that works across environments by accepting only Blob objects
+ * Pinata IPFS service integration module that provides utilities for uploading files and JSON to Pinata.
+ * @module pinata
  */
 import fs from 'fs';
 import FormData from 'form-data';
 import axios from 'axios';
 /**
- * Uploads a file to Pinata cloud storage
- * @param options Upload configuration options
- * @returns Promise resolving to the Pinata API response
+ * Uploads a file to Pinata IPFS service
+ * @param options - Upload configuration options
+ * @returns Promise resolving to the Pinata API response with IPFS hash
+ * @throws Error if upload fails
  */
 async function uploadToPinata({ file, name, token, }) {
     try {
@@ -36,6 +38,12 @@ async function uploadToPinata({ file, name, token, }) {
         throw error;
     }
 }
+/**
+ * Uploads a JSON object to Pinata IPFS service
+ * @param options - JSON upload configuration options
+ * @returns Promise resolving to the Pinata API response with IPFS hash
+ * @throws Error if upload fails
+ */
 async function uploadJsonToPinata({ json, name, token, }) {
     try {
         const data = JSON.stringify({
@@ -68,23 +76,6 @@ async function uploadJsonToPinata({ json, name, token, }) {
 //   try {
 //     const result = await uploadToPinata({
 //       file: filePath,
-//       name: 'example.jpg',
-//       token: process.env.PINATA_API_TOKEN || '',
-//     });
-//     console.log("Upload successful:", result);
-//     console.log("IPFS hash:", result.IpfsHash);
-//   } catch (error) {
-//     console.error("Upload failed:", error instanceof Error ? error.message : String(error));
-//   }
-// }
-//
-// // Example 2: Upload using Buffer
-// async function uploadFileUsingBuffer(): Promise<void> {
-//   const fileBuffer = fs.readFileSync('./assets/example.jpg');
-//
-//   try {
-//     const result = await uploadToPinata({
-//       file: fileBuffer,
 //       name: 'example.jpg',
 //       token: process.env.PINATA_API_TOKEN || '',
 //     });

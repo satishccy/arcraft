@@ -6,10 +6,10 @@
 import { uploadJsonToPinata, uploadToPinata } from './pinata';
 
 /** Supported IPFS providers */
-type providers = 'pinata';
+export type providers = 'pinata';
 
 /** Configuration for Pinata IPFS provider */
-type PinataConfig = {
+export type PinataConfig = {
   /** Provider identifier, must be 'pinata' */
   provider: 'pinata';
   /** JWT token for Pinata authentication */

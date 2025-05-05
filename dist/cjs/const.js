@@ -1,6 +1,14 @@
 "use strict";
+/**
+ * Constants used throughout the library
+ * @module const
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IPFS_GATEWAY = exports.networks = void 0;
+/**
+ * Network configurations for different Algorand networks
+ * Each configuration includes connection details for Algod and Indexer services
+ */
 const networks = {
     mainnet: {
         name: 'mainnet',
@@ -43,6 +51,9 @@ const networks = {
     },
 };
 exports.networks = networks;
+/**
+ * Default IPFS gateway URL used for resolving IPFS content
+ */
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 exports.IPFS_GATEWAY = IPFS_GATEWAY;
 //# sourceMappingURL=const.js.map

@@ -5,15 +5,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadJsonToPinata = exports.uploadToPinata = void 0;
 /**
- * Universal Pinata file uploader that works across environments by accepting only Blob objects
+ * Pinata IPFS service integration module that provides utilities for uploading files and JSON to Pinata.
+ * @module pinata
  */
 const fs_1 = __importDefault(require("fs"));
 const form_data_1 = __importDefault(require("form-data"));
 const axios_1 = __importDefault(require("axios"));
 /**
- * Uploads a file to Pinata cloud storage
- * @param options Upload configuration options
- * @returns Promise resolving to the Pinata API response
+ * Uploads a file to Pinata IPFS service
+ * @param options - Upload configuration options
+ * @returns Promise resolving to the Pinata API response with IPFS hash
+ * @throws Error if upload fails
  */
 async function uploadToPinata({ file, name, token, }) {
     try {
@@ -43,6 +45,12 @@ async function uploadToPinata({ file, name, token, }) {
     }
 }
 exports.uploadToPinata = uploadToPinata;
+/**
+ * Uploads a JSON object to Pinata IPFS service
+ * @param options - JSON upload configuration options
+ * @returns Promise resolving to the Pinata API response with IPFS hash
+ * @throws Error if upload fails
+ */
 async function uploadJsonToPinata({ json, name, token, }) {
     try {
         const data = JSON.stringify({

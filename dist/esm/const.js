@@ -1,3 +1,11 @@
+/**
+ * Constants used throughout the library
+ * @module const
+ */
+/**
+ * Network configurations for different Algorand networks
+ * Each configuration includes connection details for Algod and Indexer services
+ */
 const networks = {
     mainnet: {
         name: 'mainnet',
@@ -39,6 +47,9 @@ const networks = {
         },
     },
 };
+/**
+ * Default IPFS gateway URL used for resolving IPFS content
+ */
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 export { networks, IPFS_GATEWAY };
 //# sourceMappingURL=const.js.map
