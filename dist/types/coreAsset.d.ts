@@ -1,0 +1,34 @@
+import { AssetParams } from 'algosdk/dist/types/client/v2/algod/models/types';
+import { Network } from './types';
+export declare class CoreAsset {
+    id: number;
+    assetParams: AssetParams;
+    protected constructor(id: number, assetParams: AssetParams);
+    static fromId(id: number, network: Network): Promise<CoreAsset>;
+    static fetchAssetParams(id: number, network: Network): Promise<AssetParams>;
+    get(): AssetParams;
+    getCreator(): string;
+    getClawback(): string;
+    getFreeze(): string;
+    getReserve(): string;
+    getManager(): string;
+    hasClawback(): boolean;
+    hasFreeze(): boolean;
+    hasReserve(): boolean;
+    hasManager(): boolean;
+    getIndex(): number;
+    getName(): string;
+    getUnitName(): string;
+    getDecimals(): number;
+    getTotal(): number;
+    getTotalSupply(): number;
+    getAmountInDecimals(amount: number): number;
+    getAmountInBaseUnits(amount: number): number;
+    getDefaultFrozen(): boolean;
+    getUrl(): string;
+    getMetadataHash(): string;
+    getUrlProtocol(): string;
+    hasHttpUrl(): boolean;
+    hasIpfsUrl(): boolean;
+    hasTemplateUrl(): boolean;
+}
