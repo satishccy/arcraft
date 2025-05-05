@@ -1,6 +1,7 @@
 # Arcraft
 
 JavaScript SDK for ARC's utils in Algorand for Node.js backends.
+View the documentation [here](https://satishccy.github.io/arcraft/).
 
 ## Description
 
@@ -19,7 +20,7 @@ npm install arcraft
 - **Core Asset Utilities**: Work with Algorand Standard Assets (ASAs)
 - **Network Management**: Support for mainnet, testnet, and local networks
 
-## Toda
+## Todo
 
 - **ARC-19 NFT Implementation**: Create, mint, update and fetch all metadata version of ARC-19 compliant NFTs
 - **ARC-82 URI Parser**: Parse ARC-82 Compatiable URI's and fetch data to corresponding URI
