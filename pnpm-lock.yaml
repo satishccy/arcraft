@@ -23,6 +23,9 @@ importers:
       mime-types:
         specifier: ^3.0.1
         version: 3.0.1
+      multiformats:
+        specifier: ^13.3.6
+        version: 13.3.6
     devDependencies:
       '@types/json-bigint':
         specifier: ^1.0.0
@@ -1791,6 +1794,9 @@ packages:
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
+
+  multiformats@13.3.6:
+    resolution: {integrity: sha512-yakbt9cPYj8d3vi/8o/XWm61MrOILo7fsTL0qxNx6zS0Nso6K5JqqS2WV7vK/KSuDBvrW3KfCwAdAgarAgOmww==}
 
   multiparty@4.2.3:
     resolution: {integrity: sha512-Ak6EUJZuhGS8hJ3c2fY6UW5MbkGUPMBEGd13djUzoY/BHqV/gTuFWtC6IuVA7A2+v3yjBS6c4or50xhzTQZImQ==}
@@ -4390,6 +4396,8 @@ snapshots:
   ms@2.1.2: {}
 
   ms@2.1.3: {}
+
+  multiformats@13.3.6: {}
 
   multiparty@4.2.3:
     dependencies:
