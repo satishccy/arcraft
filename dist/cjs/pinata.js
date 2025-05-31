@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadJsonToPinata = exports.uploadToPinata = void 0;
+exports.uploadToPinata = uploadToPinata;
+exports.uploadJsonToPinata = uploadJsonToPinata;
 /**
  * Pinata IPFS service integration module that provides utilities for uploading files and JSON to Pinata.
  * @module pinata
@@ -44,7 +45,6 @@ async function uploadToPinata({ file, name, token, }) {
         throw error;
     }
 }
-exports.uploadToPinata = uploadToPinata;
 /**
  * Uploads a JSON object to Pinata IPFS service
  * @param options - JSON upload configuration options
@@ -70,5 +70,4 @@ async function uploadJsonToPinata({ json, name, token, }) {
         throw error;
     }
 }
-exports.uploadJsonToPinata = uploadJsonToPinata;
 //# sourceMappingURL=pinata.js.map
