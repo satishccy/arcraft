@@ -2,10 +2,10 @@
  * Implementation of the Algorand ARC-19 standard for NFTs.
  * @module arc19
  */
-import { TransactionSigner } from "algosdk";
-import { IPFS } from "./ipfs";
-import { CoreAsset } from "./coreAsset";
-import { Network } from "./types";
+import { TransactionSigner } from 'algosdk';
+import { IPFS } from './ipfs';
+import { CoreAsset } from './coreAsset';
+import { Network } from './types';
 /**
  * Class representing an ARC-19 compliant NFT on Algorand.
  * Extends CoreAsset with metadata handling for the ARC-19 standard.

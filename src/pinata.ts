@@ -166,5 +166,4 @@ async function uploadJsonToPinata({
 //   }
 // }
 
-
 export { uploadToPinata, uploadJsonToPinata };

@@ -51,9 +51,7 @@ async function mintNFT() {
   });
 
   // Create account from mnemonic
-  const account = algosdk.mnemonicToSecretKey(
-    'your mnemonic phrase here'
-  );
+  const account = algosdk.mnemonicToSecretKey('your mnemonic phrase here');
 
   // Create ARC-3 NFT
   const result = await Arc3.create({
@@ -66,7 +64,7 @@ async function mintNFT() {
     ipfs,
     image: path.resolve('./assets/image.png'),
     imageName: 'image.png',
-    properties: { 
+    properties: {
       collection: 'My Collection',
       artist: 'Artist Name',
     },
@@ -96,7 +94,7 @@ async function uploadAsset() {
       name: 'myImage.jpg',
       token: 'YOUR_PINATA_API_TOKEN',
     });
-    
+
     console.log('Uploaded to IPFS with hash:', result.IpfsHash);
     // Use this hash with ipfs:// protocol
     const ipfsUrl = `ipfs://${result.IpfsHash}`;
@@ -114,12 +112,12 @@ import { CoreAsset, Arc3 } from 'arcraft';
 async function getAssetInfo(assetId) {
   // Get basic asset info
   const asset = await CoreAsset.fromId(assetId, 'mainnet');
-  
+
   // Get creator, name, and other properties
   console.log(`Asset Name: ${asset.getName()}`);
   console.log(`Creator: ${asset.getCreator()}`);
   console.log(`Total Supply: ${asset.getTotalSupply()}`);
-  
+
   // Check if it's ARC-3 compliant
   const arc3Asset = await Arc3.fromId(assetId, 'mainnet');
   if (arc3Asset.isArc3()) {

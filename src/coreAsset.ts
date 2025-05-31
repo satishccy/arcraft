@@ -16,7 +16,7 @@ import { getAlgodClient } from './utils';
 export class CoreAsset {
   /** The asset ID on the Algorand blockchain */
   public id: number;
-  
+
   /** The asset parameters retrieved from the Algorand blockchain */
   public assetParams: AssetParams;
 

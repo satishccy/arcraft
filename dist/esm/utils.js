@@ -2,8 +2,8 @@
  * Utility functions for working with Algorand clients
  * @module utils
  */
-import { Algodv2, Indexer } from "algosdk";
-import { networks } from "./const";
+import { Algodv2, Indexer } from 'algosdk';
+import { networks } from './const';
 /**
  * Gets an Algorand client instance for the specified network
  * @param network - The network to connect to
