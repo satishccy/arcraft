@@ -1,9 +1,13 @@
 {
   "name": "arcraft",
-  "version": "0.0.15",
-  "description": "JavaScript SDK for ARC's utils in Algorand for Node.js backends",
+  "version": "0.0.16",
+  "description": "JavaScript SDK for ARC's utils in Algorand for both Node.js and browser environments",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
+  "browser": {
+    ".":"dist/browser/arcraft.min.js",
+    "crypto": false
+  },
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
@@ -54,12 +58,16 @@
     "typedoc": "^0.25.7",
     "typedoc-plugin-missing-exports": "^2.1.0",
     "typedoc-plugin-rename-defaults": "^0.7.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.0.1"
   },
   "scripts": {
     "test": "tsx tests/mocha.js",
+    "test:node": "node test/node-test.js",
+    "test:browser": "cd test && python -m http.server 8000",
     "prepare": "npm run build",
-    "build": "concurrently \"tsc -p tsconfig-esm.json\" \"tsc -p tsconfig-cjs.json\"",
+    "build": "concurrently \"webpack --config webpack.config.js\" \"tsc -p tsconfig-esm.json\" \"tsc -p tsconfig-cjs.json\"",
     "docs": "typedoc --options typedoc.config.json",
     "docs:dev": "typedoc --options typedoc.config.json --watch --preserveWatchOutput",
     "lint": "eslint .",

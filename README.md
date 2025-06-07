@@ -5,7 +5,7 @@ View the documentation [here](https://satishccy.github.io/arcraft/).
 
 ## Description
 
-Arcraft is a comprehensive SDK for working with Algorand's ARC standards in Node.js environments. It provides utilities for creating and managing NFTs according to the ARC-3 standard, interacting with IPFS for decentralized storage, and handling core Algorand assets.
+Arcraft is a comprehensive SDK for working with Algorand's ARC standards in both Node.js and browser environments. It provides utilities for creating and managing NFTs according to the ARC-3 standard, interacting with IPFS for decentralized storage, and handling core Algorand assets.
 
 ## Installation
 
@@ -19,6 +19,7 @@ npm install arcraft
 - **IPFS Integration**: Upload files and metadata to IPFS through Pinata
 - **Core Asset Utilities**: Work with Algorand Standard Assets (ASAs)
 - **Network Management**: Support for mainnet, testnet, and local networks
+- **Cross-Platform**: Works in both Node.js and browser environments
 
 ## Todo
 
@@ -85,6 +86,8 @@ async function mintNFT() {
 
 ### Uploading Files to IPFS via Pinata
 
+#### Node.js Environment
+
 ```javascript
 import { uploadToPinata } from 'arcraft';
 import path from 'path';
@@ -92,7 +95,7 @@ import path from 'path';
 async function uploadAsset() {
   try {
     const result = await uploadToPinata({
-      file: path.resolve('./assets/myImage.jpg'),
+      file: path.resolve('./assets/myImage.jpg'), // File path
       name: 'myImage.jpg',
       token: 'YOUR_PINATA_API_TOKEN',
     });
@@ -103,6 +106,45 @@ async function uploadAsset() {
   } catch (error) {
     console.error('Upload failed:', error);
   }
+}
+```
+
+#### Browser Environment
+
+```javascript
+import { uploadToPinata, IPFS } from 'arcraft';
+
+async function uploadFromBrowser() {
+  // Get file from HTML input element
+  const fileInput = document.getElementById('fileInput');
+  const file = fileInput.files[0];
+  
+  try {
+    const result = await uploadToPinata({
+      file: file, // File object from browser
+      name: 'myImage.jpg', // Optional, will use file.name if not provided
+      token: 'YOUR_PINATA_API_TOKEN',
+    });
+    
+    console.log('Uploaded to IPFS with hash:', result.IpfsHash);
+    const ipfsUrl = `ipfs://${result.IpfsHash}`;
+  } catch (error) {
+    console.error('Upload failed:', error);
+  }
+}
+
+// Or use the IPFS class
+async function uploadWithIPFSClass() {
+  const ipfs = new IPFS('pinata', {
+    provider: 'pinata',
+    jwt: 'YOUR_PINATA_JWT_TOKEN',
+  });
+
+  const fileInput = document.getElementById('fileInput');
+  const file = fileInput.files[0];
+  
+  const ipfsHash = await ipfs.upload(file); // fileName is optional for File objects
+  console.log('IPFS Hash:', ipfsHash);
 }
 ```
 
@@ -156,10 +198,42 @@ The `CoreAsset` class provides methods for working with Algorand assets:
 - `getCreator()`, `getManager()`, etc.: Methods to access asset properties
 - `getTotalSupply()`, `getAmountInDecimals()`: Methods for amount calculations
 
+## Testing
+
+The package includes comprehensive tests for both Node.js and browser environments.
+
+### Running Tests
+
+1. **Build the project first:**
+   ```bash
+   npm run build
+   ```
+
+2. **Node.js Test:**
+   ```bash
+   # Set your Pinata JWT token
+   export PINATA_JWT="your_jwt_token_here"
+   
+   # Run the test
+   npm run test:node
+   ```
+
+3. **Browser Test:**
+   ```bash
+   # Start the test server
+   npm run test:browser
+   
+   # Open http://localhost:8000 in your browser
+   ```
+
+See the [test directory](./test/README.md) for detailed testing instructions.
+
 ## Requirements
 
-- Node.js >= 18.0.0
+- Node.js >= 18.0.0 (for Node.js usage)
+- Modern web browser with ES6 modules support (for browser usage)
 - Algorand account with funds for asset creation
+- Pinata account and JWT token for IPFS uploads
 
 ## Contributing
 
