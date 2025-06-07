@@ -1,8 +1,8 @@
 /**
  * @module arcraft
- * 
+ *
  * Main entry point for the Arcraft SDK, providing utilities for working with Algorand ARC standards.
- * This package is designed for Node.js backends and provides tools for NFT creation, 
+ * This package is designed for Node.js backends and provides tools for NFT creation,
  * IPFS integration, and more.
  */
 

@@ -7,9 +7,7 @@ import { AssetParams } from 'algosdk/dist/types/client/v2/algod/models/types';
 import { CoreAsset } from './coreAsset';
 import { Network } from './types';
 import { IPFS_GATEWAY } from './const';
-import algosdk, {
-  TransactionSigner,
-} from 'algosdk';
+import algosdk, { TransactionSigner } from 'algosdk';
 import { IPFS } from './ipfs';
 import mime from 'mime-types';
 import crypto from 'crypto';
@@ -182,10 +180,10 @@ class Arc3 extends CoreAsset {
     let blob = new Blob([await fs.promises.readFile(image)], {
       type: mimeType,
     });
-    
+
     // Calculate SHA256 hash for image integrity
     const imageHash = await this.calculateSHA256(blob);
-    
+
     // Create ARC-3 compliant metadata
     const metadata = {
       name: name,
@@ -196,10 +194,10 @@ class Arc3 extends CoreAsset {
       image_mimetype: mimeType,
       properties: properties,
     };
-    
+
     // Upload metadata to IPFS
     const metadataCid = await ipfs.uploadJson(metadata, 'metadata.json');
-    
+
     // Create the asset on the blockchain
     const client = getAlgodClient(network);
     const sp = await client.getTransactionParams().do();
@@ -217,12 +215,12 @@ class Arc3 extends CoreAsset {
       total: 1,
       decimals: 0,
     });
-    
+
     // Sign and send the transaction
     const signed = await creator.signer([nft_txn], [0]);
     const txid = await client.sendRawTransaction(signed[0]).do();
     const result = await algosdk.waitForConfirmation(client, txid.txid, 3);
-    
+
     return { txid: txid.txid, assetId: result.assetIndex };
   }
 
