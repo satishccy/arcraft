@@ -9,7 +9,7 @@ export interface PinataUploadOptionsNode {
     /**
      * Name for the file in Pinata
      */
-    name: string;
+    name?: string;
     /**
      * Pinata API JWT token for authentication
      */

@@ -20,7 +20,7 @@ import fs from 'fs';
  */
 class Arc3 extends CoreAsset {
   /** The metadata associated with this ARC-3 asset */
-  public metadata: object;
+  public metadata: any;
 
   /**
    * Creates an instance of Arc3.
@@ -28,8 +28,13 @@ class Arc3 extends CoreAsset {
    * @param params - The asset parameters from the Algorand blockchain
    * @param metadata - The metadata associated with the asset
    */
-  private constructor(id: number, params: AssetParams, metadata: object) {
-    super(id, params);
+  private constructor(
+    id: number,
+    params: AssetParams,
+    network: Network,
+    metadata: any
+  ) {
+    super(id, params, network);
     this.metadata = metadata;
   }
 
@@ -38,12 +43,12 @@ class Arc3 extends CoreAsset {
    * @param url - The URL to fetch metadata from
    * @returns A promise resolving to the metadata object
    */
-  protected static async fetchMetadata(url: string): Promise<object> {
+  private static async fetchMetadata(url: string): Promise<any> {
     try {
       const metadataResponse = await fetch(url);
       return metadataResponse.json();
     } catch (error) {
-      return {};
+      return undefined;
     }
   }
 
@@ -58,7 +63,10 @@ class Arc3 extends CoreAsset {
     if (url.includes('{id}')) {
       resolvedUrl = url.replace('{id}', id.toString());
     }
-    if (resolvedUrl.startsWith('https://')) {
+    if (
+      resolvedUrl.startsWith('https://') ||
+      resolvedUrl.startsWith('http://')
+    ) {
       return resolvedUrl;
     } else if (resolvedUrl.startsWith('ipfs://')) {
       return `${IPFS_GATEWAY}${resolvedUrl.slice(7)}`;
@@ -75,22 +83,42 @@ class Arc3 extends CoreAsset {
    */
   static async fromId(id: number, network: Network): Promise<Arc3> {
     const asset = await CoreAsset.fromId(id, network);
-    const resolvedUrl = this.resolveUrl(asset.getUrl(), id);
-    const metadata = await this.fetchMetadata(resolvedUrl);
-    return new Arc3(id, asset.assetParams, metadata);
+    let metadata = {};
+    try {
+      const resolvedUrl = this.resolveUrl(asset.getUrl(), id);
+      metadata = await this.fetchMetadata(resolvedUrl);
+    } catch (e) {
+      // Metadata fetch failed, use empty object
+    }
+    return new Arc3(id, asset.assetParams, network, metadata);
+  }
+
+  static async fromAssetParams(
+    id: number,
+    assetParams: AssetParams,
+    network: Network
+  ): Promise<Arc3> {
+    let metadata = {};
+    try {
+      const resolvedUrl = this.resolveUrl(assetParams.url || '', id);
+      metadata = await this.fetchMetadata(resolvedUrl);
+    } catch (e) {
+      // Metadata fetch failed, use empty object
+    }
+    return new Arc3(id, assetParams, network, metadata);
   }
 
   /**
    * Checks if the asset has a valid ARC-3 name
    * @returns True if the asset name is ARC-3 compliant
    */
-  hasValidName(): boolean {
-    if (!this.assetParams.name) {
+  static hasValidName(name: string): boolean {
+    if (!name) {
       return false;
     }
-    if (this.assetParams.name.toLowerCase() == 'arc3') {
+    if (name.toLowerCase() == 'arc3') {
       return true;
-    } else if (this.assetParams.name.toLowerCase().endsWith('arc3')) {
+    } else if (name.toLowerCase().endsWith('arc3')) {
       return true;
     }
     return false;
@@ -100,12 +128,12 @@ class Arc3 extends CoreAsset {
    * Checks if the asset has a valid ARC-3 URL
    * @returns True if the asset URL is ARC-3 compliant
    */
-  hasValidUrl(): boolean {
-    if (!this.assetParams.url) {
+  static hasValidUrl(url: string, id: number): boolean {
+    if (!url) {
       return false;
     }
-    const url = Arc3.resolveUrl(this.assetParams.url, this.id);
-    if (url.toLowerCase().endsWith('#arc3')) {
+    const resolvedUrl = Arc3.resolveUrl(url, id);
+    if (resolvedUrl.toLowerCase().endsWith('#arc3')) {
       return true;
     }
     return false;
@@ -115,16 +143,54 @@ class Arc3 extends CoreAsset {
    * Checks if the asset is ARC-3 compliant
    * @returns True if the asset is ARC-3 compliant
    */
-  isArc3(): boolean {
-    return this.hasValidName() || this.hasValidUrl();
+  static isArc3(name: string, url: string, id: number): boolean {
+    if (!name || !url) {
+      return false;
+    }
+    return Arc3.hasValidName(name) || Arc3.hasValidUrl(url, id);
   }
 
   /**
    * Gets the metadata associated with the asset
    * @returns The metadata object
    */
-  getMetadata(): object {
+  getMetadata(): any {
     return this.metadata;
+  }
+
+  /**
+   * Gets the metadata URL for this ARC-3 asset
+   * @returns The resolved metadata URL
+   */
+  getMetadataUrl(): string {
+    return Arc3.resolveUrl(this.metadata.image, this.id);
+  }
+
+  /**
+   * Gets the image associated with the asset
+   * @returns The image object
+   */
+  getImageUrl(): string {
+    if (!this.metadata.image) {
+      return '';
+    }
+    return Arc3.resolveUrl(this.metadata.image, this.id);
+  }
+
+  /**
+   * Gets the image as a base64 encoded string
+   * @returns A promise resolving to the base64 encoded image
+   */
+  async getImageBase64(): Promise<string> {
+    if (!this.metadata.image) {
+      return '';
+    }
+    const imageUrl = Arc3.resolveUrl(this.metadata.image, this.id);
+    const imageResponse = await fetch(imageUrl);
+    const imageBlob = await imageResponse.blob();
+    const imageBuffer = await imageBlob.arrayBuffer();
+    const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+    return imageBase64;
   }
 
   /**
@@ -138,7 +204,6 @@ class Arc3 extends CoreAsset {
     creator,
     ipfs,
     image,
-    imageName,
     properties,
     network,
     defaultFrozen = false,
@@ -146,6 +211,8 @@ class Arc3 extends CoreAsset {
     reserve = undefined,
     freeze = undefined,
     clawback = undefined,
+    total = 1,
+    decimals = 0,
   }: {
     /** The name of the asset */
     name: string;
@@ -156,11 +223,12 @@ class Arc3 extends CoreAsset {
     /** The IPFS instance to use for uploading */
     ipfs: IPFS;
     /** The path to the image file */
-    image: string;
-    /** The name of the image file */
-    imageName: string;
+    image: {
+      file: string | File;
+      name: string;
+    };
     /** Additional properties to include in the metadata */
-    properties: object;
+    properties: any;
     /** The Algorand network to use */
     network: Network;
     /** Whether the asset should be frozen by default */
@@ -173,13 +241,31 @@ class Arc3 extends CoreAsset {
     freeze?: string;
     /** The clawback address */
     clawback?: string;
+    /** The total number of assets */
+    total?: number;
+    /** The decimals for the asset */
+    decimals?: number;
   }) {
     // Upload image to IPFS
-    const imageCid = await ipfs.upload(image, imageName);
-    const mimeType = mime.lookup(imageName) || 'application/octet-stream';
-    let blob = new Blob([await fs.promises.readFile(image)], {
-      type: mimeType,
-    });
+    let imageCid: string;
+    if (typeof image.file === 'string') {
+      imageCid = await ipfs.upload(image.file, image.name);
+    } else {
+      imageCid = await ipfs.upload(image.file, image.name);
+    }
+
+    const mimeType = mime.lookup(image.name) || 'application/octet-stream';
+
+    let blob: Blob;
+    if (typeof image.file === 'string') {
+      blob = new Blob([await fs.promises.readFile(image.file)], {
+        type: mimeType,
+      });
+    } else {
+      blob = new Blob([await image.file.arrayBuffer()], {
+        type: mimeType,
+      });
+    }
 
     // Calculate SHA256 hash for image integrity
     const imageHash = await this.calculateSHA256(blob);
@@ -212,8 +298,8 @@ class Arc3 extends CoreAsset {
       freeze: freeze,
       clawback: clawback,
       assetURL: `ipfs://${metadataCid}#arc3`,
-      total: 1,
-      decimals: 0,
+      total: total,
+      decimals: decimals,
     });
 
     // Sign and send the transaction
@@ -221,7 +307,10 @@ class Arc3 extends CoreAsset {
     const txid = await client.sendRawTransaction(signed[0]).do();
     const result = await algosdk.waitForConfirmation(client, txid.txid, 3);
 
-    return { txid: txid.txid, assetId: result.assetIndex };
+    return {
+      transactionId: txid.txid,
+      assetId: Number(result.assetIndex || 0),
+    };
   }
 
   /**

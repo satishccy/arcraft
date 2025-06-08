@@ -1,51 +1,81 @@
 # Arcraft
 
-JavaScript SDK for ARC's utils in Algorand for Node.js backends.
+[![npm version](https://badge.fury.io/js/arcraft.svg)](https://badge.fury.io/js/arcraft)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A comprehensive JavaScript/TypeScript SDK for working with Algorand ARC (Algorand Request for Comments) standards. Supports both Node.js and browser environments with utilities for creating, managing, and querying NFTs and blockchain data.
+
 View the documentation [here](https://satishccy.github.io/arcraft/).
 
-## Description
+## 📋 Table of Contents
 
-Arcraft is a comprehensive SDK for working with Algorand's ARC standards in both Node.js and browser environments. It provides utilities for creating and managing NFTs according to the ARC-3 standard, interacting with IPFS for decentralized storage, and handling core Algorand assets.
+- [Features](#-features)
+- [Installation](#-installation)
+- [Supported ARC Standards](#-supported-arc-standards)
+- [Quick Start](#-quick-start)
+- [IPFS Integration](#-ipfs-integration)
+- [API Reference](#-api-reference)
+- [Examples](#-examples)
+- [Requirements](#-requirements)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-## Installation
+## ✨ Features
+
+### **Multi-ARC Support**
+
+- **ARC-3**: Create and manage NFTs with external metadata on IPFS
+- **ARC-19**: Advanced NFTs with template-based IPFS URIs and updatable metadata
+- **ARC-69**: NFTs with embedded metadata in transaction notes
+- **ARC-82**: Query blockchain data using standardized URI schemes
+
+### **IPFS Integration**
+
+- **Multiple Providers**: Support for Pinata and Filebase
+- **Cross-Platform**: Works in both Node.js and browser environments
+- **Seamless Upload**: File and JSON metadata uploading with automatic CID generation
+
+### **Core Features**
+
+- **Network Support**: Mainnet, Testnet, and Localnet compatibility
+- **Asset Management**: Comprehensive Algorand Standard Asset utilities
+- **TypeScript Support**: Full type definitions for better development experience
+- **Error Handling**: Robust error handling and validation
+
+## 📦 Installation
 
 ```bash
 npm install arcraft
 ```
 
-## Features
+## 🎯 Supported ARC Standards
 
-- **ARC-3 NFT Implementation**: Create, mint, and manage ARC-3 compliant NFTs
-- **IPFS Integration**: Upload files and metadata to IPFS through Pinata
-- **Core Asset Utilities**: Work with Algorand Standard Assets (ASAs)
-- **Network Management**: Support for mainnet, testnet, and local networks
-- **Cross-Platform**: Works in both Node.js and browser environments
+### ARC-3: NFT Standard with External Metadata
 
-## Todo
+Traditional NFT standard where metadata is stored externally (typically on IPFS) and referenced via URL.
 
-- **ARC-19 NFT Implementation**: Create, mint, update and fetch all metadata version of ARC-19 compliant NFTs
-- **ARC-82 URI Parser**: Parse ARC-82 Compatiable URI's and fetch data to corresponding URI
+### ARC-19: Advanced NFT Standard
 
-## Modules
+Enhanced NFT standard with template-based IPFS URIs that allow for more efficient storage and updatable metadata through reserve address manipulation.
 
-The SDK consists of several modules:
+### ARC-69: Embedded Metadata NFT Standard
 
-- **Arc3**: Implementation of the Algorand ARC-3 standard for NFTs
-- **CoreAsset**: Base functionality for Algorand assets
-- **IPFS**: Integration with IPFS through various providers
-- **Pinata**: Utilities for uploading files to Pinata/IPFS
+NFT standard where metadata is embedded directly in transaction notes, eliminating the need for external storage.
 
-## Examples
+### ARC-82: Blockchain Data Query Standard
 
-### Creating an ARC-3 NFT
+URI scheme standard for querying application and asset data directly from the Algorand blockchain.
+
+## 🚀 Quick Start
+
+### Basic ARC-3 NFT Creation
 
 ```javascript
 import { Arc3, IPFS } from 'arcraft';
 import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
-import path from 'path';
 
-async function mintNFT() {
-  // Initialize IPFS with Pinata provider
+async function createARC3NFT() {
+  // Initialize IPFS provider
   const ipfs = new IPFS('pinata', {
     provider: 'pinata',
     jwt: 'YOUR_PINATA_JWT_TOKEN',
@@ -56,187 +86,611 @@ async function mintNFT() {
 
   // Create ARC-3 NFT
   const result = await Arc3.create({
-    name: 'My NFT',
-    unitName: 'NFT',
+    name: 'My First NFT',
+    unitName: 'MYNFT',
     creator: {
-      address: account.addr.toString(),
+      address: account.addr,
       signer: makeBasicAccountTransactionSigner(account),
     },
     ipfs,
-    image: path.resolve('./assets/image.png'),
-    imageName: 'image.png',
+    image: {
+      file: './artwork.jpg', // Node.js: file path, Browser: File object
+      name: 'artwork.jpg',
+    },
     properties: {
-      collection: 'My Collection',
-      artist: 'Artist Name',
+      description: 'My first NFT using Arcraft',
+      collection: 'Test Collection',
+      traits: [
+        { trait_type: 'Color', value: 'Blue' },
+        { trait_type: 'Rarity', value: 'Common' },
+      ],
     },
     network: 'testnet',
-    defaultFrozen: false,
   });
 
-  console.log(`Minted ARC-3 NFT: ${result.txid}`);
-  console.log(`Asset ID: ${result.assetId}`);
-
-  // Load the created asset
-  const asset = await Arc3.fromId(Number(result.assetId), 'testnet');
-  console.log(`Metadata: ${JSON.stringify(asset.getMetadata())}`);
+  console.log(`NFT Created! Asset ID: ${result.assetId}`);
 }
 ```
 
-### Uploading Files to IPFS via Pinata
-
-#### Node.js Environment
+### ARC-19 NFT with Updatable Metadata
 
 ```javascript
-import { uploadToPinata } from 'arcraft';
-import path from 'path';
+import { Arc19, IPFS } from 'arcraft';
 
-async function uploadAsset() {
-  try {
-    const result = await uploadToPinata({
-      file: path.resolve('./assets/myImage.jpg'), // File path
-      name: 'myImage.jpg',
-      token: 'YOUR_PINATA_API_TOKEN',
-    });
+async function createARC19NFT() {
+  const ipfs = new IPFS('filebase', {
+    provider: 'filebase',
+    token: 'YOUR_FILEBASE_TOKEN',
+  });
 
-    console.log('Uploaded to IPFS with hash:', result.IpfsHash);
-    // Use this hash with ipfs:// protocol
-    const ipfsUrl = `ipfs://${result.IpfsHash}`;
-  } catch (error) {
-    console.error('Upload failed:', error);
-  }
+  const account = algosdk.mnemonicToSecretKey('your mnemonic phrase here');
+
+  // Create ARC-19 NFT
+  const result = await Arc19.create({
+    name: 'Updatable NFT',
+    unitName: 'UPNFT',
+    creator: {
+      address: account.addr,
+      signer: makeBasicAccountTransactionSigner(account),
+    },
+    ipfs,
+    image: {
+      file: './artwork.jpg',
+      name: 'artwork.jpg',
+    },
+    properties: {
+      description: 'An NFT with updatable metadata',
+      version: '1.0.0',
+    },
+    network: 'testnet',
+  });
+
+  console.log(`ARC-19 NFT Created! Asset ID: ${result.assetId}`);
+
+  // Later, update the NFT metadata
+  await Arc19.update({
+    manager: {
+      address: account.addr,
+      signer: makeBasicAccountTransactionSigner(account),
+    },
+    properties: {
+      description: 'Updated NFT description',
+      version: '2.0.0',
+    },
+    assetId: result.assetId,
+    ipfs,
+    network: 'testnet',
+  });
 }
 ```
 
-#### Browser Environment
+### ARC-69 NFT with Embedded Metadata
 
 ```javascript
-import { uploadToPinata, IPFS } from 'arcraft';
+import { Arc69, IPFS } from 'arcraft';
 
-async function uploadFromBrowser() {
-  // Get file from HTML input element
-  const fileInput = document.getElementById('fileInput');
-  const file = fileInput.files[0];
-  
-  try {
-    const result = await uploadToPinata({
-      file: file, // File object from browser
-      name: 'myImage.jpg', // Optional, will use file.name if not provided
-      token: 'YOUR_PINATA_API_TOKEN',
-    });
-    
-    console.log('Uploaded to IPFS with hash:', result.IpfsHash);
-    const ipfsUrl = `ipfs://${result.IpfsHash}`;
-  } catch (error) {
-    console.error('Upload failed:', error);
-  }
-}
-
-// Or use the IPFS class
-async function uploadWithIPFSClass() {
+async function createARC69NFT() {
   const ipfs = new IPFS('pinata', {
     provider: 'pinata',
     jwt: 'YOUR_PINATA_JWT_TOKEN',
   });
 
-  const fileInput = document.getElementById('fileInput');
-  const file = fileInput.files[0];
-  
-  const ipfsHash = await ipfs.upload(file); // fileName is optional for File objects
-  console.log('IPFS Hash:', ipfsHash);
+  const account = algosdk.mnemonicToSecretKey('your mnemonic phrase here');
+
+  // Create ARC-69 NFT (metadata stored in transaction notes)
+  const result = await Arc69.create({
+    name: 'Embedded Metadata NFT',
+    unitName: 'EMNFT',
+    creator: {
+      address: account.addr,
+      signer: makeBasicAccountTransactionSigner(account),
+    },
+    ipfs,
+    image: {
+      file: './image.png',
+      name: 'image.png',
+    },
+    properties: {
+      standard: 'arc69',
+      description: 'NFT with metadata in transaction notes',
+      external_url: 'https://example.com',
+      attributes: [
+        { trait_type: 'Background', value: 'Sunset' },
+        { trait_type: 'Character', value: 'Robot' },
+      ],
+    },
+    network: 'testnet',
+  });
+
+  console.log(`ARC-69 NFT Created! Asset ID: ${result.assetId}`);
 }
 ```
 
-### Working with Existing Assets
+### ARC-82 Blockchain Queries
 
 ```javascript
-import { CoreAsset, Arc3 } from 'arcraft';
+import { Arc82 } from 'arcraft';
 
-async function getAssetInfo(assetId) {
-  // Get basic asset info
-  const asset = await CoreAsset.fromId(assetId, 'mainnet');
+async function queryBlockchainData() {
+  // Parse an ARC-82 URI
+  const uri = 'algorand://app/123456?box=YWNjb3VudA==&global=dG90YWw=';
+  const parsed = Arc82.parse(uri);
 
-  // Get creator, name, and other properties
-  console.log(`Asset Name: ${asset.getName()}`);
-  console.log(`Creator: ${asset.getCreator()}`);
-  console.log(`Total Supply: ${asset.getTotalSupply()}`);
+  console.log('Parsed URI:', parsed);
 
-  // Check if it's ARC-3 compliant
-  const arc3Asset = await Arc3.fromId(assetId, 'mainnet');
-  if (arc3Asset.isArc3()) {
-    console.log('ARC-3 Metadata:', arc3Asset.getMetadata());
+  // Query application data
+  const appResult = await Arc82.queryApplication(parsed, 'mainnet');
+  console.log('Application Data:', appResult);
+
+  // Query asset data
+  const assetUri = 'algorand://asset/789012?total=true&decimals=true&url=true';
+  const assetParsed = Arc82.parse(assetUri);
+  const assetResult = await Arc82.queryAsset(assetParsed, 'mainnet');
+
+  console.log('Asset Data:', assetResult);
+
+  // Build URIs programmatically
+  const newAppUri = Arc82.buildAppUri(123456, {
+    box: ['YWNjb3VudA=='],
+    global: ['dG90YWw='],
+    tealcode: true,
+  });
+
+  console.log('Built URI:', newAppUri);
+}
+```
+
+## 🗂️ IPFS Integration
+
+### Supported Providers
+
+#### Pinata
+
+```javascript
+import { IPFS, uploadToPinata } from 'arcraft';
+
+// Using IPFS class
+const ipfs = new IPFS('pinata', {
+  provider: 'pinata',
+  jwt: 'YOUR_PINATA_JWT_TOKEN',
+});
+
+// Direct upload function
+const result = await uploadToPinata({
+  file: './image.jpg', // Node.js: path, Browser: File object
+  name: 'my-image.jpg',
+  token: 'YOUR_PINATA_JWT_TOKEN',
+});
+
+console.log(`IPFS Hash: ${result.IpfsHash}`);
+```
+
+#### Filebase
+
+```javascript
+import { IPFS, uploadToFilebase } from 'arcraft';
+
+// Using IPFS class
+const ipfs = new IPFS('filebase', {
+  provider: 'filebase',
+  token: 'YOUR_FILEBASE_TOKEN',
+});
+
+// Direct upload function
+const result = await uploadToFilebase({
+  file: './document.pdf',
+  name: 'document.pdf',
+  token: 'YOUR_FILEBASE_TOKEN',
+});
+
+console.log(`IPFS CID: ${result.cid}`);
+```
+
+### Universal IPFS Interface
+
+```javascript
+// Both providers implement the same interface
+async function uploadWithProvider(ipfs) {
+  // Upload file
+  const imageCid = await ipfs.upload(file, 'filename.jpg');
+
+  // Upload JSON metadata
+  const metadataCid = await ipfs.uploadJson(
+    {
+      name: 'My NFT',
+      description: 'A beautiful NFT',
+      image: `ipfs://${imageCid}`,
+    },
+    'metadata.json'
+  );
+
+  return { imageCid, metadataCid };
+}
+```
+
+## 📖 API Reference
+
+### Arc3 Class
+
+```javascript
+// Create new ARC-3 NFT
+const result = await Arc3.create(options);
+
+// Load existing ARC-3 NFT
+const nft = await Arc3.fromId(assetId, network);
+
+// Check if asset is ARC-3 compliant
+const isCompliant = nft.isArc3();
+
+// Get metadata
+const metadata = nft.getMetadata();
+
+// Get image URL
+const imageUrl = nft.getImageUrl();
+
+// Get image as base64
+const base64Image = await nft.getImageBase64();
+```
+
+### Arc19 Class
+
+```javascript
+// Create new ARC-19 NFT
+const result = await Arc19.create(options);
+
+// Load existing ARC-19 NFT
+const nft = await Arc19.fromId(assetId, network);
+
+// Update NFT metadata
+await Arc19.update(updateOptions);
+
+// Get all metadata versions
+const versions = await Arc19.getMetadataVersions(assetId, network);
+
+// Check if URL is valid ARC-19 format
+const isValid = Arc19.hasValidUrl(url);
+
+// Resolve template URL to actual IPFS URL
+const resolvedUrl = Arc19.resolveUrl(templateUrl, reserveAddress);
+```
+
+### Arc69 Class
+
+```javascript
+// Create new ARC-69 NFT
+const result = await Arc69.create(options);
+
+// Load existing ARC-69 NFT
+const nft = await Arc69.fromId(assetId, network);
+
+// Update NFT metadata
+await Arc69.update(updateOptions);
+
+// Get all metadata versions
+const versions = await Arc69.getMetadataVersions(assetId, network);
+
+// Check if asset has valid ARC-69 metadata
+const hasValidMetadata = await Arc69.hasValidMetadata(assetId, network);
+```
+
+### Arc82 Class
+
+```javascript
+// Parse ARC-82 URI
+const parsed = Arc82.parse(uri);
+
+// Query application data
+const appData = await Arc82.queryApplication(parsed, network);
+
+// Query asset data
+const assetData = await Arc82.queryAsset(parsed, network);
+
+// Build application URI
+const appUri = Arc82.buildAppUri(appId, queryParams);
+
+// Build asset URI
+const assetUri = Arc82.buildAssetUri(assetId, queryParams);
+
+// Validate URI format
+const isValid = Arc82.isValidArc82Uri(uri);
+
+// Extract ID from URI
+const id = Arc82.extractId(uri);
+
+// Extract type from URI
+const type = Arc82.extractType(uri);
+```
+
+### IPFS Class
+
+```javascript
+// Initialize IPFS with provider
+const ipfs = new IPFS(provider, config);
+
+// Upload file
+const cid = await ipfs.upload(file, fileName);
+
+// Upload JSON
+const jsonCid = await ipfs.uploadJson(jsonObject, fileName);
+```
+
+### CoreAsset Class
+
+```javascript
+// Load asset by ID
+const asset = await CoreAsset.fromId(assetId, network);
+
+// Get asset properties
+const creator = asset.getCreator();
+const manager = asset.getManager();
+const reserve = asset.getReserve();
+const freeze = asset.getFreeze();
+const clawback = asset.getClawback();
+const name = asset.getName();
+const unitName = asset.getUnitName();
+const url = asset.getUrl();
+const total = asset.getTotalSupply();
+const decimals = asset.getDecimals();
+const defaultFrozen = asset.getDefaultFrozen();
+const metadataHash = asset.getMetadataHash();
+```
+
+## 💡 Examples
+
+### Cross-Platform File Upload
+
+```javascript
+// Node.js Environment
+import { uploadToPinata } from 'arcraft';
+import path from 'path';
+
+const nodeUpload = await uploadToPinata({
+  file: path.resolve('./assets/image.png'),
+  name: 'image.png',
+  token: 'YOUR_TOKEN',
+});
+
+// Browser Environment
+const browserUpload = async (fileInput) => {
+  const file = fileInput.files[0];
+  const result = await uploadToPinata({
+    file: file,
+    name: file.name,
+    token: 'YOUR_TOKEN',
+  });
+  return result;
+};
+```
+
+### Batch NFT Creation
+
+```javascript
+import { Arc3, IPFS } from 'arcraft';
+
+async function createNFTCollection() {
+  const ipfs = new IPFS('pinata', {
+    provider: 'pinata',
+    jwt: 'YOUR_JWT',
+  });
+
+  const account = algosdk.mnemonicToSecretKey('your mnemonic');
+  const creator = {
+    address: account.addr,
+    signer: makeBasicAccountTransactionSigner(account),
+  };
+
+  const artworks = [
+    {
+      file: './art1.png',
+      name: 'Sunset Dreams',
+      traits: [{ trait_type: 'Theme', value: 'Nature' }],
+    },
+    {
+      file: './art2.png',
+      name: 'City Lights',
+      traits: [{ trait_type: 'Theme', value: 'Urban' }],
+    },
+    {
+      file: './art3.png',
+      name: 'Ocean Waves',
+      traits: [{ trait_type: 'Theme', value: 'Water' }],
+    },
+  ];
+
+  const results = [];
+
+  for (const [index, artwork] of artworks.entries()) {
+    const result = await Arc3.create({
+      name: artwork.name,
+      unitName: `ART${index + 1}`,
+      creator,
+      ipfs,
+      image: artwork.file,
+      imageName: `${artwork.name.replace(/\s+/g, '_').toLowerCase()}.png`,
+      properties: {
+        description: `Artwork #${index + 1} from the Dreams Collection`,
+        collection: 'Dreams Collection',
+        edition: index + 1,
+        total_editions: artworks.length,
+        attributes: artwork.traits,
+      },
+      network: 'testnet',
+    });
+
+    results.push(result);
+    console.log(`Created NFT #${index + 1}: Asset ID ${result.assetId}`);
+  }
+
+  return results;
+}
+```
+
+### Complex ARC-82 Queries
+
+```javascript
+import { Arc82 } from 'arcraft';
+
+async function complexBlockchainQuery() {
+  // Query multiple box keys and global state
+  const appUri = Arc82.buildAppUri(123456, {
+    box: [
+      Arc82.encodeBase64Url('user_balance'),
+      Arc82.encodeBase64Url('total_supply'),
+      Arc82.encodeBase64Url('admin_settings'),
+    ],
+    global: [
+      Arc82.encodeBase64Url('contract_version'),
+      Arc82.encodeBase64Url('paused'),
+    ],
+    local: [
+      {
+        key: Arc82.encodeBase64Url('user_score'),
+        algorandaddress: 'ALGORAND_ADDRESS_HERE',
+      },
+    ],
+    tealcode: true,
+  });
+
+  console.log('Generated URI:', appUri);
+
+  const parsed = Arc82.parse(appUri);
+  const result = await Arc82.queryApplication(parsed, 'mainnet');
+
+  // Process results
+  if (result.success) {
+    console.log('Box storage results:', result.boxes);
+    console.log('Global state results:', result.global);
+    console.log('Local state results:', result.local);
+    console.log('TEAL code:', result.tealCode);
   } else {
-    console.log('Not an ARC-3 compliant asset');
+    console.error('Query failed:', result.error);
   }
 }
 ```
 
-## API Documentation
+### Metadata Version Tracking
 
-### Arc3 Class
+```javascript
+import { Arc19, Arc69 } from 'arcraft';
 
-The `Arc3` class extends `CoreAsset` with ARC-3 specific functionality:
+async function trackMetadataVersions(assetId, network) {
+  try {
+    // Get ARC-19 metadata versions
+    const arc19Versions = await Arc19.getMetadataVersions(assetId, network);
+    console.log('ARC-19 Metadata Versions:', arc19Versions);
 
-- `static async create(options)`: Creates a new ARC-3 NFT
-- `static async fromId(id, network)`: Loads an existing ARC-3 asset
-- `isArc3()`: Checks if the asset is ARC-3 compliant
-- `getMetadata()`: Gets the metadata associated with the asset
+    // Get ARC-69 metadata versions
+    const arc69Versions = await Arc69.getMetadataVersions(assetId, network);
+    console.log('ARC-69 Metadata Versions:', arc69Versions);
 
-### IPFS Class
+    // Compare versions and show evolution
+    if (arc19Versions.length > 0) {
+      console.log('ARC-19 Evolution:');
+      arc19Versions.forEach((version, index) => {
+        console.log(`Version ${index + 1}:`, {
+          timestamp: version.timestamp,
+          metadataHash: version.metadataHash,
+          changes: version.properties,
+        });
+      });
+    }
+  } catch (error) {
+    console.error('Error tracking versions:', error);
+  }
+}
+```
 
-The `IPFS` class provides methods for interacting with IPFS:
+## 📋 Requirements
 
-- `upload(file, fileName)`: Uploads a file to IPFS
-- `uploadJson(json, fileName)`: Uploads a JSON object to IPFS
+### Environment Requirements
 
-### CoreAsset Class
+- **Node.js**: >= 18.0.0 (for Node.js usage)
+- **Browser**: Modern browsers with ES6 modules support
+- **TypeScript**: >= 5.0.0 (for TypeScript projects)
 
-The `CoreAsset` class provides methods for working with Algorand assets:
+### Algorand Requirements
 
-- `static async fromId(id, network)`: Creates a CoreAsset instance from an asset ID
-- `getCreator()`, `getManager()`, etc.: Methods to access asset properties
-- `getTotalSupply()`, `getAmountInDecimals()`: Methods for amount calculations
+- Algorand account with sufficient funds for asset creation
+- Access to Algorand node (Algod) and Indexer services
+- Network connectivity to chosen Algorand network (mainnet/testnet/localnet)
 
-## Testing
+### IPFS Provider Requirements
 
-The package includes comprehensive tests for both Node.js and browser environments.
+Choose at least one IPFS provider:
 
-### Running Tests
+#### Pinata
 
-1. **Build the project first:**
-   ```bash
-   npm run build
-   ```
+- Pinata account and JWT token
+- Sign up at [pinata.cloud](https://pinata.cloud)
 
-2. **Node.js Test:**
-   ```bash
-   # Set your Pinata JWT token
-   export PINATA_JWT="your_jwt_token_here"
-   
-   # Run the test
-   npm run test:node
-   ```
+#### Filebase
 
-3. **Browser Test:**
-   ```bash
-   # Start the test server
-   npm run test:browser
-   
-   # Open http://localhost:8000 in your browser
-   ```
+- Filebase account and API token
+- Sign up at [filebase.com](https://filebase.com)
 
-See the [test directory](./test/README.md) for detailed testing instructions.
+### Development Requirements
 
-## Requirements
+- Git for version control
+- npm or yarn package manager
+- Code editor with TypeScript support (recommended: VS Code)
 
-- Node.js >= 18.0.0 (for Node.js usage)
-- Modern web browser with ES6 modules support (for browser usage)
-- Algorand account with funds for asset creation
-- Pinata account and JWT token for IPFS uploads
+## 🤝 Contributing
 
-## Contributing
+We welcome contributions! Here's how you can help:
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Getting Started
 
-## License
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/satishccy/arcraft.git`
+3. Install dependencies: `npm install`
+4. Create a feature branch: `git checkout -b feature/amazing-feature`
 
-MIT
+### Development Workflow
+
+1. Make your changes
+2. Add tests for new functionality
+3. Run tests: `npm test`
+4. Run linter: `npm run lint:fix`
+5. Format code: `npm run format`
+6. Commit your changes: `git commit -m 'Add amazing feature'`
+7. Push to your branch: `git push origin feature/amazing-feature`
+8. Open a Pull Request
+
+### Contribution Guidelines
+
+- Follow the existing code style and conventions
+- Add comprehensive tests for new features
+- Update documentation for API changes
+- Keep commits atomic and well-described
+- Ensure all tests pass before submitting PR
+
+### Areas for Contribution
+
+- Additional ARC standard implementations
+- More IPFS provider integrations
+- Performance optimizations
+- Browser compatibility improvements
+- Documentation enhancements
+- Example applications
+
+## 📄 License
+
+MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- **Documentation**: [https://satishccy.github.io/arcraft/](https://satishccy.github.io/arcraft/)
+- **GitHub Repository**: [https://github.com/satishccy/arcraft](https://github.com/satishccy/arcraft)
+- **npm Package**: [https://www.npmjs.com/package/arcraft](https://www.npmjs.com/package/arcraft)
+- **Issues**: [https://github.com/satishccy/arcraft/issues](https://github.com/satishccy/arcraft/issues)
+
+## 🙏 Acknowledgments
+
+- Algorand Foundation for the ARC standards
+- The Algorand developer community
+- Contributors to the algosdk-js library
+- IPFS and related decentralized storage providers
+
+---
+
+**Built with ❤️ for the Algorand ecosystem**

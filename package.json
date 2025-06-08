@@ -5,7 +5,7 @@
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "browser": {
-    ".":"dist/browser/arcraft.min.js",
+    ".": "dist/browser/arcraft.min.js",
     "crypto": false
   },
   "exports": {
@@ -25,6 +25,7 @@
     "url": "git://github.com/satishccy/arcraft.git"
   },
   "dependencies": {
+    "@filebase/client": "^0.0.5",
     "algosdk": "^3.2.0",
     "axios": "^1.9.0",
     "crypto": "^1.0.1",
@@ -64,17 +65,13 @@
     "webpack-cli": "^5.0.1"
   },
   "scripts": {
-    "test": "tsx tests/mocha.js",
-    "test:node": "node test/node-test.js",
-    "test:browser": "cd test && python -m http.server 8000",
     "prepare": "npm run build",
     "build": "concurrently \"webpack --config webpack.config.js\" \"tsc -p tsconfig-esm.json\" \"tsc -p tsconfig-cjs.json\"",
     "docs": "typedoc --options typedoc.config.json",
     "docs:dev": "typedoc --options typedoc.config.json --watch --preserveWatchOutput",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "format": "prettier --write .",
-    "example": "ts-node"
+    "format": "prettier --write ."
   },
   "author": "satishccy",
   "license": "MIT",

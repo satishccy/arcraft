@@ -62,32 +62,30 @@ class Arc19 extends coreAsset_1.CoreAsset {
      * @param params - The asset parameters from the Algorand blockchain
      * @param metadata - The metadata associated with the asset
      */
-    constructor(id, params, metadata) {
-        super(id, params);
+    constructor(id, params, network, metadata) {
+        super(id, params, network);
         this.metadata = metadata;
     }
-    static resolveProtocol(url, reserveAddr) {
-        if (url.endsWith('#arc3'))
-            url = url.slice(0, url.length - '#arc3'.length);
+    static resolveUrl(url, reserveAddr) {
         let chunks = url.split('://');
         // Check if prefix is template-ipfs and if {ipfscid:..} is where CID would normally be
         if (chunks[0] === 'template-ipfs' && chunks[1].startsWith('{ipfscid:')) {
             // Look for something like: template:ipfs://{ipfscid:1:raw:reserve:sha2-256} and parse into components
-            chunks[0] = 'ipfs';
             const cidComponents = chunks[1].split(':');
             if (cidComponents.length !== 5) {
-                // give up
-                return url;
+                return '';
             }
             const [, cidVersion, cidCodec, asaField, cidHash] = cidComponents;
             if (cidHash.split('}')[0] !== 'sha2-256') {
-                return url;
+                return '';
             }
-            if (cidCodec !== 'raw' && cidCodec !== 'dag-pb') {
-                return url;
+            if (cidCodec !== 'raw' &&
+                cidCodec !== 'dag-pb' &&
+                cidCodec !== 'dag-cbor') {
+                return '';
             }
             if (asaField !== 'reserve') {
-                return url;
+                return '';
             }
             let cidCodecCode = 0x0;
             if (cidCodec === 'raw') {
@@ -103,113 +101,12 @@ class Arc19 extends coreAsset_1.CoreAsset {
             const addr = algosdk_1.default.decodeAddress(reserveAddr);
             const mhdigest = multiformats.digest.create(0x12, addr.publicKey);
             const cid = multiformats.CID.create(parseInt(cidVersion), cidCodecCode, mhdigest);
-            chunks[1] =
-                cid.toString() + '/' + chunks[1].split('/').slice(1).join('/');
+            const ipfsCid = cid.toString() + '/' + chunks[1].split('/').slice(1).join('/');
+            return `${const_1.IPFS_GATEWAY}${ipfsCid}`;
         }
-        // No protocol specified, give up
-        if (chunks.length < 2)
-            return url;
-        //Switch on the protocol
-        switch (chunks[0]) {
-            case 'ipfs': //Its ipfs, use the configured gateway
-                return 'ipfs://' + chunks[1];
-            case 'https': //Its already http, just return it
-                return url;
-            // TODO: Future options may include arweave or algorand
+        else {
+            return '';
         }
-        return url;
-    }
-    static async calculateSHA256(blobContent) {
-        if (!blobContent) {
-            throw Error('No Blob found in calculateSHA256');
-        }
-        try {
-            var buffer = Buffer.from(await blobContent.arrayBuffer());
-            const hash = crypto_1.default.createHash('sha256');
-            hash.update(buffer);
-            return hash.digest('hex');
-        }
-        catch (error) {
-            throw error;
-        }
-    }
-    static codeToCodec(code) {
-        switch (code.toString(16)) {
-            case '55':
-                return 'raw';
-            case '70':
-                return 'dag-pb';
-            case '71':
-                return 'dag-cbor';
-            default:
-                throw new Error('Unknown codec');
-        }
-    }
-    static createReserveAddressFromIpfsCid(ipfsCid) {
-        const decoded = multiformats.CID.parse(ipfsCid);
-        const version = decoded.version;
-        const codec = this.codeToCodec(decoded.code);
-        const assetURL = `template-ipfs://{ipfscid:${version}:${codec}:reserve:sha2-256}`;
-        const reserveAddress = algosdk_1.default.encodeAddress(Uint8Array.from(Buffer.from(decoded.multihash.digest)));
-        return { assetURL, reserveAddress };
-    }
-    static async createNFTwithImageCID(params) {
-        const { path, filename, image_cid, ipfs, creator, name, unitName, manager, freeze, clawback, properties, network, } = params;
-        // Upload image to IPFS
-        if (!image_cid) {
-            throw new Error('Failed to upload image to IPFS');
-        }
-        // Determine the MIME type and calculate SHA256 hash of the image
-        const mimeType = mime_types_1.default.lookup(filename) || 'application/octet-stream';
-        const blob = new Blob([await fs_1.default.promises.readFile(path)], {
-            type: mimeType,
-        });
-        const hash = await this.calculateSHA256(blob);
-        // Construct metadata for the NFT
-        const metadata = {
-            name,
-            unitName,
-            creator: creator.address,
-            image: `ipfs://${image_cid}`,
-            image_integrity: `sha256-${hash}`,
-            image_mimetype: mimeType,
-            properties: properties || {},
-        };
-        // Upload metadata to IPFS
-        const metadata_cid = await ipfs.uploadJson(metadata, 'metadata.json');
-        if (!metadata_cid) {
-            throw new Error('Failed to upload metadata to IPFS');
-        }
-        // Create the asset URL and reserve address from the IPFS CID
-        const { assetURL, reserveAddress } = this.createReserveAddressFromIpfsCid(metadata_cid);
-        // Fetch transaction parameters
-        const algodClient = (0, utils_1.getAlgodClient)(network);
-        const suggestedParams = await algodClient.getTransactionParams().do();
-        // Create the asset (NFT) transaction
-        const nft_txn = algosdk_1.default.makeAssetCreateTxnWithSuggestedParamsFromObject({
-            sender: creator.address,
-            suggestedParams,
-            defaultFrozen: false,
-            unitName,
-            assetName: name,
-            manager: manager ? manager : undefined,
-            reserve: reserveAddress,
-            freeze: freeze ? freeze : undefined,
-            clawback: clawback ? clawback : undefined,
-            assetURL,
-            total: 1,
-            decimals: 0,
-        });
-        // Sign the transaction
-        const signed = await creator.signer([nft_txn], [0]);
-        // Send the transaction
-        const txid = await algodClient.sendRawTransaction(signed[0]).do();
-        // Wait for confirmation
-        const result = await algosdk_1.default.waitForConfirmation(algodClient, txid.txid, 3);
-        return {
-            transactionId: txid.txid,
-            assetId: Number(result.assetIndex || 0),
-        };
     }
     /**
      * Creates an Arc19 instance from an existing asset ID
@@ -221,25 +118,32 @@ class Arc19 extends coreAsset_1.CoreAsset {
         const asset = await coreAsset_1.CoreAsset.fromId(id, network);
         let metadata = {};
         try {
-            const arc19Instance = new _a(id, asset.assetParams, {});
-            if (arc19Instance.hasValidUrl()) {
-                const metadataUrl = arc19Instance.getMetadataUrl();
-                const response = await axios_1.default.get(metadataUrl);
-                metadata = response.data;
-            }
+            const metadataUrl = _a.resolveUrl(asset.getUrl(), asset.getReserve());
+            const response = await axios_1.default.get(metadataUrl);
+            metadata = response.data;
         }
         catch (e) {
             // Metadata fetch failed, use empty object
         }
-        return new _a(id, asset.assetParams, metadata);
+        return new _a(id, asset.assetParams, network, metadata);
     }
-    hasValidUrl() {
-        const url = this.getUrl();
+    static async fromAssetParams(id, assetParams, network) {
+        let metadata = {};
+        try {
+            const metadataUrl = _a.resolveUrl(assetParams.url || '', assetParams.reserve || '');
+            const response = await axios_1.default.get(metadataUrl);
+            metadata = response.data;
+        }
+        catch (e) {
+            // Metadata fetch failed, use empty object
+        }
+        return new _a(id, assetParams, network, metadata);
+    }
+    static hasValidUrl(url) {
         if (!url) {
             return false;
         }
-        const protocol = this.getUrlProtocol();
-        if (protocol !== 'template-ipfs') {
+        if (!url.startsWith('template-ipfs://')) {
             return false;
         }
         const chunks = url.split('://');
@@ -257,7 +161,9 @@ class Arc19 extends coreAsset_1.CoreAsset {
         if (cidHash.split('}')[0] !== 'sha2-256') {
             return false;
         }
-        if (cidCodec !== 'raw' && cidCodec !== 'dag-pb') {
+        if (cidCodec !== 'raw' &&
+            cidCodec !== 'dag-pb' &&
+            cidCodec !== 'dag-cbor') {
             return false;
         }
         if (asaField !== 'reserve') {
@@ -265,6 +171,108 @@ class Arc19 extends coreAsset_1.CoreAsset {
         }
         return true;
     }
+    static isArc19(url) {
+        return _a.hasValidUrl(url);
+    }
+    static async calculateSHA256(blobContent) {
+        if (!blobContent) {
+            throw Error('No Blob found in calculateSHA256');
+        }
+        try {
+            var buffer = Buffer.from(await blobContent.arrayBuffer());
+            const hash = crypto_1.default.createHash('sha256');
+            hash.update(buffer);
+            return hash.digest('hex');
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    /**
+     * Converts a codec code to its string representation
+     * @param code - The numeric codec code
+     * @returns The codec string representation
+     * @private
+     */
+    static codeToCodec(code) {
+        switch (code.toString(16)) {
+            case '55':
+                return 'raw';
+            case '70':
+                return 'dag-pb';
+            case '71':
+                return 'dag-cbor';
+            default:
+                throw new Error('Unknown codec');
+        }
+    }
+    /**
+     * Creates a reserve address and asset URL from an IPFS CID
+     * @param ipfsCid - The IPFS content identifier
+     * @returns An object containing the asset URL and reserve address
+     * @private
+     */
+    static createReserveAddressFromIpfsCid(ipfsCid) {
+        const decoded = multiformats.CID.parse(ipfsCid);
+        const version = decoded.version;
+        const codec = this.codeToCodec(decoded.code);
+        const assetURL = `template-ipfs://{ipfscid:${version}:${codec}:reserve:sha2-256}`;
+        const reserveAddress = algosdk_1.default.encodeAddress(Uint8Array.from(Buffer.from(decoded.multihash.digest)));
+        return { assetURL, reserveAddress };
+    }
+    /**
+     * Resolves standard URLs, handling HTTP/HTTPS and IPFS protocols
+     * @param url - The URL to resolve
+     * @returns The resolved URL with proper protocol
+     * @private
+     */
+    static resolveNormalUrl(url) {
+        if (url.startsWith('https://') || url.startsWith('http://')) {
+            return url;
+        }
+        else if (url.startsWith('ipfs://')) {
+            return `${const_1.IPFS_GATEWAY}${url.slice(7)}`;
+        }
+        else {
+            return '';
+        }
+    }
+    /**
+     * Gets the metadata associated with this ARC-19 asset
+     * @returns The metadata object
+     */
+    getMetadata() {
+        return this.metadata;
+    }
+    /**
+     * Gets the resolved image URL for this ARC-19 asset
+     * @returns The resolved image URL
+     */
+    getImageUrl() {
+        if (!this.metadata.image) {
+            return '';
+        }
+        return _a.resolveNormalUrl(this.metadata.image);
+    }
+    /**
+     * Gets the image as a base64 encoded string
+     * @returns A promise resolving to the base64 encoded image
+     */
+    async getImageBase64() {
+        if (!this.metadata.image) {
+            return '';
+        }
+        const imageUrl = _a.resolveNormalUrl(this.metadata.image);
+        const imageResponse = await fetch(imageUrl);
+        const imageBlob = await imageResponse.blob();
+        const imageBuffer = await imageBlob.arrayBuffer();
+        const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+        return imageBase64;
+    }
+    /**
+     * Gets the metadata URL for this ARC-19 asset by resolving the template-ipfs URL
+     * @returns The resolved metadata URL
+     */
     getMetadataUrl() {
         const reserve = this.getReserve();
         const url = this.getUrl();
@@ -292,77 +300,60 @@ class Arc19 extends coreAsset_1.CoreAsset {
             '/' +
             chunks[1].split('/').slice(1).join('/'));
     }
-    async getMetadata() {
-        if (this.hasValidUrl()) {
-            const url = this.getMetadataUrl();
-            try {
-                const response = await axios_1.default.get(url);
-                return response.data;
-            }
-            catch (e) {
-                return {};
-            }
-        }
-        return this.metadata;
-    }
-    async validate() {
-        const validation = {
-            valid: true,
-            error: '',
-        };
-        if (!this.hasValidUrl()) {
-            validation.valid = false;
-            validation.error = `Url must be of form 
-template-ipfs://{ipfscid:<version>:<multicodec>:<field name containing 32-byte digest, ie reserve>:<hash type>}[/...]`;
-            return validation;
-        }
-        return validation;
-    }
 }
 exports.Arc19 = Arc19;
 _a = Arc19;
 /**
  * Creates a new ARC-19 compliant NFT on the Algorand blockchain
  */
-Arc19.createNFT = async (path, filename, ipfs, creator, name, unitName, properties, hasClawback, network) => {
-    const image_cid = await ipfs.upload(path, filename);
-    const mimeType = mime_types_1.default.lookup(filename) || 'application/octet-stream';
-    let blob = new Blob([await fs_1.default.promises.readFile(path)], {
-        type: mimeType,
-    });
-    const hash = await _a.calculateSHA256(blob) //calculates hash of the blob
-        .then(async (hash) => {
-        return hash;
-    })
-        .catch((error) => {
-        return { status: false, err: 'Error calculating SHA256 hash:' };
-    });
-    const metadataa = {
+Arc19.create = async ({ name, unitName, creator, ipfs, image, properties, network, defaultFrozen = false, manager = undefined, freeze = undefined, clawback = undefined, total = 1, decimals = 0, }) => {
+    // Upload image to IPFS
+    let imageCid;
+    if (typeof image.file === 'string') {
+        imageCid = await ipfs.upload(image.file, image.name);
+    }
+    else {
+        imageCid = await ipfs.upload(image.file, image.name);
+    }
+    const mimeType = mime_types_1.default.lookup(image.name) || 'application/octet-stream';
+    let blob;
+    if (typeof image.file === 'string') {
+        blob = new Blob([await fs_1.default.promises.readFile(image.file)], {
+            type: mimeType,
+        });
+    }
+    else {
+        blob = new Blob([await image.file.arrayBuffer()], {
+            type: mimeType,
+        });
+    }
+    const hash = await _a.calculateSHA256(blob);
+    const metadata = {
         name: name,
         unitName: unitName,
         creator: creator.address,
-        image: 'ipfs://' + image_cid,
+        image: 'ipfs://' + imageCid,
         image_integrity: `sha256-${hash}`,
         image_mimetype: mimeType,
         properties: properties,
     };
-    const metadata_cid = await ipfs.uploadJson(metadataa, 'metadata.json');
-    const { assetURL, reserveAddress } = _a.createReserveAddressFromIpfsCid(metadata_cid);
+    const metadataCid = await ipfs.uploadJson(metadata, 'metadata.json');
+    const { assetURL, reserveAddress } = _a.createReserveAddressFromIpfsCid(metadataCid);
     const algodClient = (0, utils_1.getAlgodClient)(network);
     const suggestedParams = await algodClient.getTransactionParams().do();
     const nft_txn = algosdk_1.default.makeAssetCreateTxnWithSuggestedParamsFromObject({
         sender: creator.address,
         suggestedParams,
-        defaultFrozen: false,
+        defaultFrozen: defaultFrozen,
         unitName: unitName,
         assetName: name,
-        manager: creator.address,
+        manager: manager,
         reserve: reserveAddress,
-        freeze: creator.address,
-        clawback: hasClawback ? creator.address : undefined,
+        freeze: freeze,
+        clawback: clawback,
         assetURL: assetURL,
-        total: 1,
-        decimals: 0,
+        total: total,
+        decimals: decimals,
     });
     const signed = await creator.signer([nft_txn], [0]);
     const txid = await algodClient.sendRawTransaction(signed[0]).do();
@@ -372,138 +363,157 @@ Arc19.createNFT = async (path, filename, ipfs, creator, name, unitName, properti
         assetId: Number(result.assetIndex || 0),
     };
 };
-Arc19.updateMetadataProperties = async (manager, updatedProperties, assetId, ipfs, network, ipfsHash, filename, path) => {
+/**
+ * Updates the metadata and/or image of an existing ARC-19 NFT
+ * @param options - Configuration options for updating the NFT
+ * @returns A promise resolving to an object with status and transaction details
+ */
+Arc19.update = async ({ manager, properties, image, assetId, ipfs, network, }) => {
     try {
         let metadata_url = '';
         const indexerClient = (0, utils_1.getIndexerClient)(network);
         var indexer_result = await indexerClient
             .lookupAssetByID(Number(assetId))
             .do();
-        if (indexer_result.asset.params.url?.includes('template-ipfs://')) {
-            metadata_url = _a.resolveProtocol(indexer_result.asset.params.url, indexer_result.asset.params.reserve || '');
-            if (metadata_url.includes('template-ipfs://')) {
+        if (indexer_result.asset.params.url &&
+            _a.hasValidUrl(indexer_result.asset.params.url)) {
+            metadata_url = _a.resolveUrl(indexer_result.asset.params.url, indexer_result.asset.params.reserve || '');
+            if (metadata_url === '') {
                 return { status: false, err: 'Unable to resolve ipfs url' };
             }
         }
         else {
             return { status: false, err: 'Not a Mutable NFT' };
         }
-        let mimeType;
-        if (filename) {
-            mimeType = mime_types_1.default.lookup(filename) || 'application/octet-stream';
+        const metadata_res = await fetch(const_1.IPFS_GATEWAY + metadata_url.split('://')[1]);
+        const metadata = await metadata_res.json();
+        if (image) {
+            const mimeType = mime_types_1.default.lookup(image.name) || 'application/octet-stream';
+            let blob;
+            if (typeof image.file === 'string') {
+                blob = new Blob([await fs_1.default.promises.readFile(image.file)], {
+                    type: mimeType,
+                });
+            }
+            else {
+                blob = new Blob([await image.file.arrayBuffer()], {
+                    type: mimeType,
+                });
+            }
+            const hash = await _a.calculateSHA256(blob);
+            let imageCid;
+            if (typeof image.file === 'string') {
+                imageCid = await ipfs.upload(image.file, image.name);
+            }
+            else {
+                imageCid = await ipfs.upload(image.file, image.name);
+            }
+            metadata.image = `ipfs://${imageCid}`;
+            metadata.image_integrity = `sha256-${hash}`;
+            metadata.image_mimetype = mimeType;
         }
-        let hash;
-        if (path) {
-            console.log('path:', path);
-            const response = await axios_1.default.get(path, { responseType: 'arraybuffer' });
-            const blob = new Blob([response.data], {
-                type: mimeType,
-            });
-            hash = await _a.calculateSHA256(blob);
-        }
-        const ipfs_gateway = 'https://ipfs.algonode.xyz/ipfs/';
-        var metadata_res = await fetch(ipfs_gateway + metadata_url.split('://')[1]);
-        var metadata = await metadata_res.json();
-        metadata.image = ipfsHash ? `ipfs://${ipfsHash}` : metadata.image;
-        metadata.image_integrity = path
-            ? `sha256-${hash}`
-            : metadata.image_integrity;
-        metadata.image_mimetype = filename ? mimeType : metadata.image_mimetype;
         // adding owner
-        metadata.properties = updatedProperties;
-        const metadata_cid = await ipfs.uploadJson(metadata, 'metadata.json');
-        const { assetURL, reserveAddress } = _a.createReserveAddressFromIpfsCid(metadata_cid);
-        const algodClient = (0, utils_1.getAlgodClient)(network);
-        const suggestedParams = await algodClient.getTransactionParams().do();
-        const updatetxn = algosdk_1.default.makeAssetConfigTxnWithSuggestedParamsFromObject({
-            sender: manager.address,
-            suggestedParams: suggestedParams,
-            manager: manager.address,
-            freeze: indexer_result.asset.params.freeze
-                ? indexer_result.asset.params.freeze
-                : metadata.creator,
-            clawback: indexer_result.asset.params.clawback
-                ? indexer_result.asset.params.clawback
-                : metadata.creator,
-            reserve: reserveAddress,
-            assetIndex: Number(assetId),
-            strictEmptyAddressChecking: false,
-        });
-        const signed = await manager.signer([updatetxn], [0]);
-        const txid = await algodClient.sendRawTransaction(signed[0]).do();
-        const result = await algosdk_1.default.waitForConfirmation(algodClient, txid.txid, 3);
-        return {
-            status: true,
-            confirmedRound: result.confirmedRound,
-            transactionId: txid.txid,
-        };
+        if (properties) {
+            metadata.properties = properties;
+        }
+        if (image || properties) {
+            const metadataCid = await ipfs.uploadJson(metadata, 'metadata.json');
+            const { assetURL, reserveAddress } = _a.createReserveAddressFromIpfsCid(metadataCid);
+            const algodClient = (0, utils_1.getAlgodClient)(network);
+            const suggestedParams = await algodClient.getTransactionParams().do();
+            const updatetxn = algosdk_1.default.makeAssetConfigTxnWithSuggestedParamsFromObject({
+                sender: manager.address,
+                suggestedParams: suggestedParams,
+                manager: manager.address,
+                freeze: indexer_result.asset.params.freeze
+                    ? indexer_result.asset.params.freeze
+                    : undefined,
+                clawback: indexer_result.asset.params.clawback
+                    ? indexer_result.asset.params.clawback
+                    : undefined,
+                reserve: reserveAddress,
+                assetIndex: Number(assetId),
+                strictEmptyAddressChecking: false,
+            });
+            const signed = await manager.signer([updatetxn], [0]);
+            const txid = await algodClient.sendRawTransaction(signed[0]).do();
+            const result = await algosdk_1.default.waitForConfirmation(algodClient, txid.txid, 3);
+            return {
+                status: true,
+                confirmedRound: result.confirmedRound,
+                transactionId: txid.txid,
+            };
+        }
+        else {
+            return { status: false, err: 'No changes to update' };
+        }
     }
     catch (e) {
         return { status: false, err: e };
     }
 };
+/**
+ * Retrieves all historical versions of metadata for an ARC-19 asset
+ * @param assetId - The asset ID to get metadata versions for
+ * @param network - The Algorand network to search on
+ * @returns A promise resolving to an array of metadata objects with round numbers
+ */
 Arc19.getMetadataVersions = async (assetId, network) => {
-    const ipfs_gateway = 'https://ipfs.algonode.xyz/ipfs/';
     const indexerClient = (0, utils_1.getIndexerClient)(network);
     var assets_txns = await indexerClient
         .searchForTransactions()
         .assetID(assetId)
-        .sigType('sig')
         .txType('acfg')
         .do();
     var url = '';
     const metadatas = [];
     for (var i = 0; i < assets_txns.transactions.length; i++) {
-        if (i == 0) {
-            url =
-                assets_txns.transactions[i]['asset-config-transaction']
-                    ?.params?.url ||
+        try {
+            if (i == 0) {
+                url =
                     assets_txns.transactions[i].assetConfigTransaction?.params?.url ||
-                    '';
+                        '';
+            }
+            var round = assets_txns.transactions[i].confirmedRound || 0;
+            var metadata_url = _a.resolveUrl(url, assets_txns.transactions[i].assetConfigTransaction?.params?.reserve ||
+                '');
+            var metadata_res = await fetch(const_1.IPFS_GATEWAY + metadata_url.split('://')[1]);
+            var metadata = await metadata_res.json();
+            var m = {};
+            m[round.toString()] = metadata;
+            metadatas.push(m);
         }
-        var round = assets_txns.transactions[i]['confirmed-round'] ||
-            assets_txns.transactions[i].confirmedRound ||
-            0;
-        var metadata_url = _a.resolveProtocol(url, assets_txns.transactions[i]['asset-config-transaction']?.params
-            ?.reserve ||
-            assets_txns.transactions[i].assetConfigTransaction?.params?.reserve ||
-            '');
-        var metadata_res = await fetch(ipfs_gateway + metadata_url.split('://')[1]);
-        var metadata = await metadata_res.json();
-        var m = {};
-        m[round] = metadata;
-        metadatas.push(m);
+        catch (e) {
+            console.error(e);
+        }
     }
     while (true) {
         if (assets_txns.nextToken) {
             var assets_txns = await indexerClient
                 .searchForTransactions()
                 .assetID(assetId)
-                .sigType('sig')
                 .txType('acfg')
                 .nextToken(assets_txns.nextToken)
                 .do();
             for (var i = 0; i < assets_txns.transactions.length; i++) {
-                if (i == 0) {
-                    url =
-                        assets_txns.transactions[i]['asset-config-transaction']
-                            ?.params?.url ||
-                            assets_txns.transactions[i].assetConfigTransaction?.params?.url ||
-                            '';
+                try {
+                    if (i == 0) {
+                        url =
+                            assets_txns.transactions[i].assetConfigTransaction?.params
+                                ?.url || '';
+                    }
+                    var round = assets_txns.transactions[i].confirmedRound || 0;
+                    var metadata_url = _a.resolveUrl(url, assets_txns.transactions[i].assetConfigTransaction?.params
+                        ?.reserve || '');
+                    var metadata_res = await fetch(const_1.IPFS_GATEWAY + metadata_url.split('://')[1]);
+                    var metadata = await metadata_res.json();
+                    var m = {};
+                    m[round.toString()] = metadata;
+                    metadatas.push(m);
                 }
-                var round = assets_txns.transactions[i]['confirmed-round'] ||
-                    assets_txns.transactions[i].confirmedRound ||
-                    0;
-                var metadata_url = _a.resolveProtocol(url, assets_txns.transactions[i]['asset-config-transaction']
-                    ?.params?.reserve ||
-                    assets_txns.transactions[i].assetConfigTransaction?.params
-                        ?.reserve ||
-                    '');
-                var metadata_res = await fetch(ipfs_gateway + metadata_url.split('://')[1]);
-                var metadata = await metadata_res.json();
-                var m = {};
-                m[round] = metadata;
-                metadatas.push(m);
+                catch (e) {
+                    console.error(e);
+                }
             }
         }
         else {

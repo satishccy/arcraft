@@ -12,7 +12,9 @@ exports.uploadJsonToPinata = uploadJsonToPinata;
  */
 const axios_1 = __importDefault(require("axios"));
 // Environment detection
-const isNode = typeof window === 'undefined' && typeof process !== 'undefined' && process.versions?.node;
+const isNode = typeof window === 'undefined' &&
+    typeof process !== 'undefined' &&
+    process.versions?.node;
 // Dynamic imports for Node.js-specific modules
 let fs;
 let FormDataNode;
@@ -45,8 +47,9 @@ async function uploadToPinataNode({ file, name, token, }) {
         const formData = new FormDataNode();
         const fileStream = fs.createReadStream(file);
         formData.append('file', fileStream);
+        const fileName = name || file.split('/').pop();
         const pinataMetadata = JSON.stringify({
-            name: name,
+            name: fileName,
         });
         formData.append('pinataMetadata', pinataMetadata);
         const pinataOptions = JSON.stringify({
@@ -113,7 +116,6 @@ async function uploadToPinata(options) {
         return uploadToPinataBrowser(options);
     }
 }
-exports.uploadToPinata = uploadToPinata;
 /**
  * Uploads a JSON object to Pinata IPFS service
  * @param options - JSON upload configuration options

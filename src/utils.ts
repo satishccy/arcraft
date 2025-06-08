@@ -35,4 +35,55 @@ const getIndexerClient = (network: Network) => {
   );
 };
 
-export { getAlgodClient, getIndexerClient };
+/**
+ * Converts a Buffer to a base64url encoded string
+ * @param buffer - The Buffer to convert
+ * @returns The base64url encoded string
+ */
+const bufferToBase64Url = (buffer: Buffer) => {
+  return buffer
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+};
+
+/**
+ * Converts a base64url encoded string to a Buffer
+ * @param base64Url - The base64url encoded string to convert
+ * @returns The resulting Buffer
+ */
+const base64UrlToBuffer = (base64Url: string) => {
+  return Buffer.from(base64Url, 'base64');
+};
+
+/**
+ * Converts a base64url encoded string to a Uint8Array
+ * @param base64Url - The base64url encoded string to convert
+ * @returns The resulting Uint8Array
+ */
+const base64UrlToUint8Array = (base64Url: string) => {
+  return Uint8Array.from(Buffer.from(base64Url, 'base64'));
+};
+
+/**
+ * Converts a Uint8Array to a base64url encoded string
+ * @param uint8Array - The Uint8Array to convert
+ * @returns The base64url encoded string
+ */
+const uint8ArrayToBase64Url = (uint8Array: Uint8Array) => {
+  return Buffer.from(uint8Array)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+};
+
+export {
+  getAlgodClient,
+  getIndexerClient,
+  bufferToBase64Url,
+  base64UrlToBuffer,
+  base64UrlToUint8Array,
+  uint8ArrayToBase64Url,
+};

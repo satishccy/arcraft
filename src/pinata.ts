@@ -6,7 +6,10 @@
 import axios from 'axios';
 
 // Environment detection
-const isNode = typeof window === 'undefined' && typeof process !== 'undefined' && process.versions?.node;
+const isNode =
+  typeof window === 'undefined' &&
+  typeof process !== 'undefined' &&
+  process.versions?.node;
 
 // Dynamic imports for Node.js-specific modules
 let fs: any;
@@ -60,7 +63,9 @@ export interface PinataUploadOptionsBrowser {
 /**
  * Configuration options for uploading files to Pinata (Universal)
  */
-export type PinataUploadOptions = PinataUploadOptionsNode | PinataUploadOptionsBrowser;
+export type PinataUploadOptions =
+  | PinataUploadOptionsNode
+  | PinataUploadOptionsBrowser;
 
 /**
  * Response object returned by Pinata API after a successful upload
@@ -87,7 +92,9 @@ export interface PinataResponse {
 /**
  * Type guard to check if options are for Node.js environment
  */
-function isNodeOptions(options: PinataUploadOptions): options is PinataUploadOptionsNode {
+function isNodeOptions(
+  options: PinataUploadOptions
+): options is PinataUploadOptionsNode {
   return typeof (options as PinataUploadOptionsNode).file === 'string';
 }
 
@@ -187,7 +194,9 @@ async function uploadToPinataBrowser({
  * @returns Promise resolving to the Pinata API response with IPFS hash
  * @throws Error if upload fails
  */
-async function uploadToPinata(options: PinataUploadOptions): Promise<PinataResponse> {
+async function uploadToPinata(
+  options: PinataUploadOptions
+): Promise<PinataResponse> {
   if (isNodeOptions(options)) {
     // Node.js environment - file is a string path
     return uploadToPinataNode(options);

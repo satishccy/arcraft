@@ -8,6 +8,9 @@ import { ALGORAND_ZERO_ADDRESS_STRING } from 'algosdk';
 import { AssetParams } from 'algosdk/dist/types/client/v2/algod/models/types';
 import { Network } from './types';
 import { getAlgodClient } from './utils';
+import { Arc3 } from './arc3';
+import { Arc69 } from './arc69';
+import { Arc19 } from './arc19';
 
 /**
  * Base class for working with Algorand Standard Assets (ASAs)
@@ -20,14 +23,22 @@ export class CoreAsset {
   /** The asset parameters retrieved from the Algorand blockchain */
   public assetParams: AssetParams;
 
+  /** The Algorand network to use */
+  public network: Network;
+
   /**
    * Creates an instance of CoreAsset
    * @param id - The asset ID
    * @param assetParams - The asset parameters
    */
-  protected constructor(id: number, assetParams: AssetParams) {
+  protected constructor(
+    id: number,
+    assetParams: AssetParams,
+    network: Network
+  ) {
     this.id = id;
     this.assetParams = assetParams;
+    this.network = network;
   }
 
   /**
@@ -36,9 +47,52 @@ export class CoreAsset {
    * @param network - The Algorand network to use
    * @returns A promise resolving to a CoreAsset instance
    */
-  static async fromId(id: number, network: Network): Promise<CoreAsset> {
+  static async fromId(
+    id: number,
+    network: Network
+  ): Promise<CoreAsset | Arc3 | Arc69 | Arc19> {
     const assetParams = await this.fetchAssetParams(id, network);
-    return new CoreAsset(id, assetParams);
+    if (Arc3.isArc3(assetParams.name || '', assetParams.url || '', id)) {
+      return await Arc3.fromAssetParams(id, assetParams, network);
+    } else if (Arc19.isArc19(assetParams.url || '')) {
+      return await Arc19.fromAssetParams(id, assetParams, network);
+    } else if (await Arc69.isArc69(assetParams.url || '', id, network)) {
+      return await Arc69.fromAssetParams(id, assetParams, network);
+    } else {
+      return new CoreAsset(id, assetParams, network);
+    }
+  }
+
+  /**
+   * Checks if this asset is ARC-3 compliant
+   * @returns True if the asset follows ARC-3 standard
+   */
+  isArc3(): boolean {
+    return Arc3.isArc3(
+      this.assetParams.name || '',
+      this.assetParams.url || '',
+      this.id
+    );
+  }
+
+  /**
+   * Checks if this asset is ARC-19 compliant
+   * @returns True if the asset follows ARC-19 standard
+   */
+  isArc19(): boolean {
+    return Arc19.isArc19(this.assetParams.url || '');
+  }
+
+  /**
+   * Checks if this asset is ARC-69 compliant
+   * @returns A promise resolving to true if the asset follows ARC-69 standard
+   */
+  async isArc69(): Promise<boolean> {
+    return await Arc69.isArc69(
+      this.assetParams.url || '',
+      this.id,
+      this.network
+    );
   }
 
   /**

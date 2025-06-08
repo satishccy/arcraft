@@ -2,6 +2,7 @@
  * Implementation of the Algorand ARC-3 standard for NFTs.
  * @module arc3
  */
+import { AssetParams } from 'algosdk/dist/types/client/v2/algod/models/types';
 import { CoreAsset } from './coreAsset';
 import { Network } from './types';
 import { TransactionSigner } from 'algosdk';
@@ -12,7 +13,7 @@ import { IPFS } from './ipfs';
  */
 declare class Arc3 extends CoreAsset {
     /** The metadata associated with this ARC-3 asset */
-    metadata: object;
+    metadata: any;
     /**
      * Creates an instance of Arc3.
      * @param id - The asset ID
@@ -25,7 +26,7 @@ declare class Arc3 extends CoreAsset {
      * @param url - The URL to fetch metadata from
      * @returns A promise resolving to the metadata object
      */
-    protected static fetchMetadata(url: string): Promise<object>;
+    private static fetchMetadata;
     /**
      * Resolves URLs, handling IPFS protocol and ID replacements
      * @param url - The URL to resolve
@@ -40,32 +41,48 @@ declare class Arc3 extends CoreAsset {
      * @returns A promise resolving to an Arc3 instance
      */
     static fromId(id: number, network: Network): Promise<Arc3>;
+    static fromAssetParams(id: number, assetParams: AssetParams, network: Network): Promise<Arc3>;
     /**
      * Checks if the asset has a valid ARC-3 name
      * @returns True if the asset name is ARC-3 compliant
      */
-    hasValidName(): boolean;
+    static hasValidName(name: string): boolean;
     /**
      * Checks if the asset has a valid ARC-3 URL
      * @returns True if the asset URL is ARC-3 compliant
      */
-    hasValidUrl(): boolean;
+    static hasValidUrl(url: string, id: number): boolean;
     /**
      * Checks if the asset is ARC-3 compliant
      * @returns True if the asset is ARC-3 compliant
      */
-    isArc3(): boolean;
+    static isArc3(name: string, url: string, id: number): boolean;
     /**
      * Gets the metadata associated with the asset
      * @returns The metadata object
      */
-    getMetadata(): object;
+    getMetadata(): any;
+    /**
+     * Gets the metadata URL for this ARC-3 asset
+     * @returns The resolved metadata URL
+     */
+    getMetadataUrl(): string;
+    /**
+     * Gets the image associated with the asset
+     * @returns The image object
+     */
+    getImageUrl(): string;
+    /**
+     * Gets the image as a base64 encoded string
+     * @returns A promise resolving to the base64 encoded image
+     */
+    getImageBase64(): Promise<string>;
     /**
      * Creates a new ARC-3 compliant NFT on the Algorand blockchain
      * @param options - The configuration options for the NFT
      * @returns A promise resolving to an object containing the transaction ID and asset ID
      */
-    static create({ name, unitName, creator, ipfs, image, imageName, properties, network, defaultFrozen, manager, reserve, freeze, clawback, }: {
+    static create({ name, unitName, creator, ipfs, image, properties, network, defaultFrozen, manager, reserve, freeze, clawback, total, decimals, }: {
         /** The name of the asset */
         name: string;
         /** The unit name for the asset */
@@ -78,11 +95,12 @@ declare class Arc3 extends CoreAsset {
         /** The IPFS instance to use for uploading */
         ipfs: IPFS;
         /** The path to the image file */
-        image: string;
-        /** The name of the image file */
-        imageName: string;
+        image: {
+            file: string | File;
+            name: string;
+        };
         /** Additional properties to include in the metadata */
-        properties: object;
+        properties: any;
         /** The Algorand network to use */
         network: Network;
         /** Whether the asset should be frozen by default */
@@ -95,9 +113,13 @@ declare class Arc3 extends CoreAsset {
         freeze?: string;
         /** The clawback address */
         clawback?: string;
+        /** The total number of assets */
+        total?: number;
+        /** The decimals for the asset */
+        decimals?: number;
     }): Promise<{
-        txid: string;
-        assetId: bigint | undefined;
+        transactionId: string;
+        assetId: number;
     }>;
     /**
      * Calculates the SHA256 hash of a file's content

@@ -20,8 +20,8 @@ class Arc3 extends CoreAsset {
      * @param params - The asset parameters from the Algorand blockchain
      * @param metadata - The metadata associated with the asset
      */
-    constructor(id, params, metadata) {
-        super(id, params);
+    constructor(id, params, network, metadata) {
+        super(id, params, network);
         this.metadata = metadata;
     }
     /**
@@ -35,7 +35,7 @@ class Arc3 extends CoreAsset {
             return metadataResponse.json();
         }
         catch (error) {
-            return {};
+            return undefined;
         }
     }
     /**
@@ -49,7 +49,8 @@ class Arc3 extends CoreAsset {
         if (url.includes('{id}')) {
             resolvedUrl = url.replace('{id}', id.toString());
         }
-        if (resolvedUrl.startsWith('https://')) {
+        if (resolvedUrl.startsWith('https://') ||
+            resolvedUrl.startsWith('http://')) {
             return resolvedUrl;
         }
         else if (resolvedUrl.startsWith('ipfs://')) {
@@ -67,22 +68,39 @@ class Arc3 extends CoreAsset {
      */
     static async fromId(id, network) {
         const asset = await CoreAsset.fromId(id, network);
-        const resolvedUrl = this.resolveUrl(asset.getUrl(), id);
-        const metadata = await this.fetchMetadata(resolvedUrl);
-        return new Arc3(id, asset.assetParams, metadata);
+        let metadata = {};
+        try {
+            const resolvedUrl = this.resolveUrl(asset.getUrl(), id);
+            metadata = await this.fetchMetadata(resolvedUrl);
+        }
+        catch (e) {
+            // Metadata fetch failed, use empty object
+        }
+        return new Arc3(id, asset.assetParams, network, metadata);
+    }
+    static async fromAssetParams(id, assetParams, network) {
+        let metadata = {};
+        try {
+            const resolvedUrl = this.resolveUrl(assetParams.url || '', id);
+            metadata = await this.fetchMetadata(resolvedUrl);
+        }
+        catch (e) {
+            // Metadata fetch failed, use empty object
+        }
+        return new Arc3(id, assetParams, network, metadata);
     }
     /**
      * Checks if the asset has a valid ARC-3 name
      * @returns True if the asset name is ARC-3 compliant
      */
-    hasValidName() {
-        if (!this.assetParams.name) {
+    static hasValidName(name) {
+        if (!name) {
             return false;
         }
-        if (this.assetParams.name.toLowerCase() == 'arc3') {
+        if (name.toLowerCase() == 'arc3') {
             return true;
         }
-        else if (this.assetParams.name.toLowerCase().endsWith('arc3')) {
+        else if (name.toLowerCase().endsWith('arc3')) {
             return true;
         }
         return false;
@@ -91,12 +109,12 @@ class Arc3 extends CoreAsset {
      * Checks if the asset has a valid ARC-3 URL
      * @returns True if the asset URL is ARC-3 compliant
      */
-    hasValidUrl() {
-        if (!this.assetParams.url) {
+    static hasValidUrl(url, id) {
+        if (!url) {
             return false;
         }
-        const url = Arc3.resolveUrl(this.assetParams.url, this.id);
-        if (url.toLowerCase().endsWith('#arc3')) {
+        const resolvedUrl = Arc3.resolveUrl(url, id);
+        if (resolvedUrl.toLowerCase().endsWith('#arc3')) {
             return true;
         }
         return false;
@@ -105,8 +123,11 @@ class Arc3 extends CoreAsset {
      * Checks if the asset is ARC-3 compliant
      * @returns True if the asset is ARC-3 compliant
      */
-    isArc3() {
-        return this.hasValidName() || this.hasValidUrl();
+    static isArc3(name, url, id) {
+        if (!name || !url) {
+            return false;
+        }
+        return Arc3.hasValidName(name) || Arc3.hasValidUrl(url, id);
     }
     /**
      * Gets the metadata associated with the asset
@@ -116,17 +137,63 @@ class Arc3 extends CoreAsset {
         return this.metadata;
     }
     /**
+     * Gets the metadata URL for this ARC-3 asset
+     * @returns The resolved metadata URL
+     */
+    getMetadataUrl() {
+        return Arc3.resolveUrl(this.metadata.image, this.id);
+    }
+    /**
+     * Gets the image associated with the asset
+     * @returns The image object
+     */
+    getImageUrl() {
+        if (!this.metadata.image) {
+            return '';
+        }
+        return Arc3.resolveUrl(this.metadata.image, this.id);
+    }
+    /**
+     * Gets the image as a base64 encoded string
+     * @returns A promise resolving to the base64 encoded image
+     */
+    async getImageBase64() {
+        if (!this.metadata.image) {
+            return '';
+        }
+        const imageUrl = Arc3.resolveUrl(this.metadata.image, this.id);
+        const imageResponse = await fetch(imageUrl);
+        const imageBlob = await imageResponse.blob();
+        const imageBuffer = await imageBlob.arrayBuffer();
+        const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+        return imageBase64;
+    }
+    /**
      * Creates a new ARC-3 compliant NFT on the Algorand blockchain
      * @param options - The configuration options for the NFT
      * @returns A promise resolving to an object containing the transaction ID and asset ID
      */
-    static async create({ name, unitName, creator, ipfs, image, imageName, properties, network, defaultFrozen = false, manager = undefined, reserve = undefined, freeze = undefined, clawback = undefined, }) {
+    static async create({ name, unitName, creator, ipfs, image, properties, network, defaultFrozen = false, manager = undefined, reserve = undefined, freeze = undefined, clawback = undefined, total = 1, decimals = 0, }) {
         // Upload image to IPFS
-        const imageCid = await ipfs.upload(image, imageName);
-        const mimeType = mime.lookup(imageName) || 'application/octet-stream';
-        let blob = new Blob([await fs.promises.readFile(image)], {
-            type: mimeType,
-        });
+        let imageCid;
+        if (typeof image.file === 'string') {
+            imageCid = await ipfs.upload(image.file, image.name);
+        }
+        else {
+            imageCid = await ipfs.upload(image.file, image.name);
+        }
+        const mimeType = mime.lookup(image.name) || 'application/octet-stream';
+        let blob;
+        if (typeof image.file === 'string') {
+            blob = new Blob([await fs.promises.readFile(image.file)], {
+                type: mimeType,
+            });
+        }
+        else {
+            blob = new Blob([await image.file.arrayBuffer()], {
+                type: mimeType,
+            });
+        }
         // Calculate SHA256 hash for image integrity
         const imageHash = await this.calculateSHA256(blob);
         // Create ARC-3 compliant metadata
@@ -155,14 +222,17 @@ class Arc3 extends CoreAsset {
             freeze: freeze,
             clawback: clawback,
             assetURL: `ipfs://${metadataCid}#arc3`,
-            total: 1,
-            decimals: 0,
+            total: total,
+            decimals: decimals,
         });
         // Sign and send the transaction
         const signed = await creator.signer([nft_txn], [0]);
         const txid = await client.sendRawTransaction(signed[0]).do();
         const result = await algosdk.waitForConfirmation(client, txid.txid, 3);
-        return { txid: txid.txid, assetId: result.assetIndex };
+        return {
+            transactionId: txid.txid,
+            assetId: Number(result.assetIndex || 0),
+        };
     }
     /**
      * Calculates the SHA256 hash of a file's content

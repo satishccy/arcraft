@@ -1,0 +1,498 @@
+/**
+ * Implementation of the Algorand ARC-69 standard for NFTs with embedded metadata.
+ * ARC-69 stores metadata directly in transaction notes instead of external URLs.
+ * @module arc69
+ */
+
+import { AssetParams } from 'algosdk/dist/types/client/v2/algod/models/types';
+import { CoreAsset } from './coreAsset';
+import { Network } from './types';
+import { getAlgodClient, getIndexerClient } from './utils';
+import { IPFS_GATEWAY } from './const';
+import algosdk, { TransactionSigner } from 'algosdk';
+import { IPFS } from './ipfs';
+import mime from 'mime-types';
+import fs from 'fs';
+import crypto from 'crypto';
+
+/**
+ * Class representing an ARC-69 compliant NFT on Algorand.
+ * ARC-69 NFTs store metadata in transaction notes rather than external URLs.
+ * Extends CoreAsset with metadata handling for the ARC-69 standard.
+ */
+export class Arc69 extends CoreAsset {
+  /** The metadata associated with this ARC-69 asset, stored in transaction notes */
+  public metadata: any;
+
+  /**
+   * Creates an instance of Arc69.
+   * @param id - The asset ID on the Algorand blockchain
+   * @param params - The asset parameters from the Algorand blockchain
+   * @param network - The Algorand network this asset exists on
+   * @param metadata - The metadata associated with the asset (from transaction notes)
+   */
+  private constructor(
+    id: number,
+    params: AssetParams,
+    network: Network,
+    metadata: any
+  ) {
+    super(id, params, network);
+    this.metadata = metadata;
+  }
+
+  /**
+   * Fetches ARC-69 metadata from transaction notes for a given asset
+   * @param assetId - The asset ID to fetch metadata for
+   * @param network - The Algorand network to search on
+   * @returns A promise resolving to the metadata object, or undefined if not found
+   */
+  private static async fetchMetadata(
+    assetId: number,
+    network: Network
+  ): Promise<any> {
+    try {
+      const indexerClient = getIndexerClient(network);
+      const txns = await indexerClient
+        .lookupAssetTransactions(assetId)
+        .txType('acfg')
+        .do();
+
+      let totalTxns = [...txns.transactions];
+
+      while (true) {
+        if (txns.nextToken) {
+          const nextTxns = await indexerClient
+            .lookupAssetTransactions(assetId)
+            .txType('acfg')
+            .nextToken(txns.nextToken)
+            .do();
+          totalTxns = [...totalTxns, ...nextTxns.transactions];
+        } else {
+          break;
+        }
+      }
+
+      totalTxns.sort((a, b) => Number(a.roundTime) - Number(b.roundTime));
+
+      for (const tx of totalTxns) {
+        try {
+          const note = tx.note;
+          const decoder = new TextDecoder();
+          const metadata = JSON.parse(decoder.decode(note));
+          return metadata;
+        } catch (e) {
+          console.error(e);
+          continue;
+        }
+      }
+      return undefined;
+    } catch (e) {
+      console.error(e);
+      return undefined;
+    }
+  }
+
+  /**
+   * Resolves standard URLs, handling HTTP/HTTPS and IPFS protocols
+   * @param url - The URL to resolve
+   * @returns The resolved URL with proper protocol
+   */
+  private static resolveNormalUrl(url: string): string {
+    if (url.startsWith('https://') || url.startsWith('http://')) {
+      return url;
+    } else if (url.startsWith('ipfs://')) {
+      return `${IPFS_GATEWAY}${url.slice(7)}`;
+    } else {
+      return '';
+    }
+  }
+
+  /**
+   * Public method to resolve URLs for ARC-69 assets
+   * @param url - The URL to resolve
+   * @returns The resolved URL
+   */
+  static resolveUrl(url: string): string {
+    return Arc69.resolveNormalUrl(url);
+  }
+
+  /**
+   * Creates an Arc69 instance from an existing asset ID
+   * @param id - The asset ID to load
+   * @param network - The Algorand network to use
+   * @returns A promise resolving to an Arc69 instance
+   */
+  static async fromId(id: number, network: Network): Promise<Arc69> {
+    const asset = await CoreAsset.fromId(id, network);
+    let metadata = {};
+    try {
+      metadata = await Arc69.fetchMetadata(id, network);
+    } catch (e) {
+      // Metadata fetch failed, use empty object
+    }
+    return new Arc69(id, asset.assetParams, network, metadata);
+  }
+
+  /**
+   * Creates an Arc69 instance from existing asset parameters
+   * @param id - The asset ID
+   * @param assetParams - The asset parameters from the blockchain
+   * @param network - The Algorand network to use
+   * @returns A promise resolving to an Arc69 instance
+   */
+  static async fromAssetParams(
+    id: number,
+    assetParams: AssetParams,
+    network: Network
+  ): Promise<Arc69> {
+    let metadata = {};
+    try {
+      metadata = await Arc69.fetchMetadata(id, network);
+    } catch (e) {
+      // Metadata fetch failed, use empty object
+    }
+    return new Arc69(id, assetParams, network, metadata);
+  }
+
+  /**
+   * Checks if an asset has valid ARC-69 metadata in its transaction notes
+   * @param assetId - The asset ID to check
+   * @param network - The Algorand network to search on
+   * @returns True if the asset has valid ARC-69 metadata
+   */
+  static async hasValidMetadata(
+    assetId: number,
+    network: Network
+  ): Promise<boolean> {
+    try {
+      const metadata = await Arc69.fetchMetadata(assetId, network);
+      if (metadata) {
+        if (metadata.standard === 'arc69') {
+          return true;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return false;
+  }
+
+  /**
+   * Validates if a URL conforms to ARC-69 standards
+   * @param url - The URL to validate
+   * @returns True if the URL is valid for ARC-69
+   */
+  static hasValidUrl(url: string): boolean {
+    if (!url) {
+      return false;
+    }
+    const mediaType = url.split('#')[1] || '#i'; // Default to image if no media type specified
+    const validMediaTypes = ['#i', '#v', '#a', '#p', '#h'];
+
+    if (!validMediaTypes.includes(mediaType)) {
+      return false;
+    }
+
+    return url.startsWith('ipfs://') || url.startsWith('https://');
+  }
+
+  /**
+   * Determines if an asset is ARC-69 compliant
+   * @param url - The asset URL to check
+   * @param id - The asset ID
+   * @param network - The Algorand network to check on
+   * @returns True if the asset is ARC-69 compliant
+   */
+  static async isArc69(
+    url: string,
+    id: number,
+    network: Network
+  ): Promise<boolean> {
+    if (!url) {
+      return false;
+    }
+    return (
+      Arc69.hasValidUrl(url) && (await Arc69.hasValidMetadata(id, network))
+    );
+  }
+
+  /**
+   * Gets the metadata associated with this ARC-69 asset
+   * @returns The metadata object
+   */
+  getMetadata(): any {
+    return this.metadata;
+  }
+
+  /**
+   * Gets the resolved image URL for this ARC-69 asset
+   * @returns The resolved image URL
+   */
+  getImageUrl(): string {
+    return Arc69.resolveUrl(this.getUrl());
+  }
+
+  /**
+   * Gets the image as a base64 encoded string
+   * @returns A promise resolving to the base64 encoded image
+   */
+  async getImageBase64(): Promise<string> {
+    const imageUrl = this.getImageUrl();
+    const imageResponse = await fetch(imageUrl);
+    const imageBlob = await imageResponse.blob();
+    const imageBuffer = await imageBlob.arrayBuffer();
+    const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+    return imageBase64;
+  }
+
+  /**
+   * Creates a new ARC-69 compliant NFT on the Algorand blockchain
+   * @param options - Configuration options for creating the ARC-69 NFT
+   * @returns A promise resolving to an object containing the transaction ID and asset ID
+   */
+  static async create({
+    name,
+    unitName,
+    creator,
+    ipfs,
+    image,
+    properties,
+    network,
+    defaultFrozen = false,
+    manager = undefined,
+    reserve = undefined,
+    freeze = undefined,
+    clawback = undefined,
+    total = 1,
+    decimals = 0,
+  }: {
+    /** The name of the NFT */
+    name: string;
+    /** The unit name for the NFT */
+    unitName: string;
+    /** The creator account with address and transaction signer */
+    creator: { address: string; signer: TransactionSigner };
+    /** IPFS instance for uploading the image */
+    ipfs: IPFS;
+    /** Image file and metadata */
+    image: {
+      file: string | File;
+      name: string;
+    };
+    /** Additional properties for the NFT metadata */
+    properties: any;
+    /** The Algorand network to create the NFT on */
+    network: Network;
+    /** Whether the asset should be frozen by default */
+    defaultFrozen?: boolean;
+    /** The manager address for the asset */
+    manager?: string;
+    /** The reserve address for the asset */
+    reserve?: string;
+    /** The freeze address for the asset */
+    freeze?: string;
+    /** The clawback address for the asset */
+    clawback?: string;
+    /** The total number of units to create */
+    total?: number;
+    /** The number of decimal places for the asset */
+    decimals?: number;
+  }) {
+    let imageCid: string;
+    if (typeof image.file === 'string') {
+      imageCid = await ipfs.upload(image.file, image.name);
+    } else {
+      imageCid = await ipfs.upload(image.file, image.name);
+    }
+
+    const mimeType = mime.lookup(image.name) || 'application/octet-stream';
+    let blob: Blob;
+    if (typeof image.file === 'string') {
+      blob = new Blob([await fs.promises.readFile(image.file)], {
+        type: mimeType,
+      });
+    } else {
+      blob = new Blob([await image.file.arrayBuffer()], {
+        type: mimeType,
+      });
+    }
+
+    const hash = await this.calculateSHA256(blob);
+
+    const metadata = {
+      standard: 'arc69',
+      external_url: `ipfs://${imageCid}#i`,
+      image_integrity: `sha256-${hash}`,
+      mime_type: mimeType,
+      properties: properties,
+    };
+
+    const client = getAlgodClient(network);
+    let sp = await client.getTransactionParams().do();
+    const nft_txn = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
+      sender: creator.address,
+      suggestedParams: sp,
+      defaultFrozen: defaultFrozen,
+      unitName: unitName,
+      assetName: name,
+      manager: manager,
+      reserve: reserve,
+      freeze: freeze,
+      clawback: clawback,
+      assetURL: `ipfs://${imageCid}#i`,
+      total: total,
+      decimals: decimals,
+    });
+    const signed = await creator.signer([nft_txn], [0]);
+    const txid = await client.sendRawTransaction(signed[0]).do();
+    const result = await algosdk.waitForConfirmation(client, txid.txid, 3);
+
+    sp = await client.getTransactionParams().do();
+    const noteField = new TextEncoder().encode(JSON.stringify(metadata));
+    const noteTxn = algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
+      sender: creator.address,
+      assetIndex: Number(result.assetIndex || 0),
+      note: noteField,
+      suggestedParams: sp,
+      manager: manager,
+      reserve: reserve,
+      freeze: freeze,
+      clawback: clawback,
+      strictEmptyAddressChecking: false,
+    });
+    const signedNoteTxn = await creator.signer([noteTxn], [0]);
+    const txidNote = await client.sendRawTransaction(signedNoteTxn[0]).do();
+    const resultNote = await algosdk.waitForConfirmation(
+      client,
+      txidNote.txid,
+      3
+    );
+    return {
+      transactionId: txid.txid,
+      assetId: Number(result.assetIndex || 0),
+    };
+  }
+
+  /**
+   * Updates the metadata properties of an existing ARC-69 NFT
+   * @param options - Configuration options for updating the NFT metadata
+   * @returns A promise resolving to an object containing the transaction ID and confirmed round
+   */
+  static update = async ({
+    manager,
+    properties,
+    assetId,
+    network,
+  }: {
+    /** The manager account with address and transaction signer */
+    manager: { address: string; signer: TransactionSigner };
+    /** The new properties to set in the metadata */
+    properties: any;
+    /** The asset ID of the NFT to update */
+    assetId: number;
+    /** The Algorand network the NFT exists on */
+    network: Network;
+  }) => {
+    const client = getAlgodClient(network);
+    const coreAsset = await CoreAsset.fromId(assetId, network);
+    const sp = await client.getTransactionParams().do();
+    const metadata = await Arc69.fetchMetadata(assetId, network);
+    if (!metadata) {
+      throw Error('Metadata not found');
+    }
+    metadata.properties = properties;
+    const noteField = new TextEncoder().encode(JSON.stringify(metadata));
+    const noteTxn = algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
+      sender: manager.address,
+      assetIndex: assetId,
+      note: noteField,
+      suggestedParams: sp,
+      manager: manager.address,
+      reserve: coreAsset.assetParams.reserve,
+      freeze: coreAsset.assetParams.freeze,
+      clawback: coreAsset.assetParams.clawback,
+      strictEmptyAddressChecking: false,
+    });
+    const signedNoteTxn = await manager.signer([noteTxn], [0]);
+    const txidNote = await client.sendRawTransaction(signedNoteTxn[0]).do();
+    const resultNote = await algosdk.waitForConfirmation(
+      client,
+      txidNote.txid,
+      3
+    );
+    return {
+      transactionId: txidNote.txid,
+      confirmedRound: resultNote.confirmedRound,
+    };
+  };
+
+  /**
+   * Retrieves all historical versions of metadata for an ARC-69 asset
+   * @param assetId - The asset ID to get metadata versions for
+   * @param network - The Algorand network to search on
+   * @returns A promise resolving to an array of metadata objects
+   */
+  static getMetadataVersions = async (assetId: number, network: Network) => {
+    const indexerClient = getIndexerClient(network);
+    var assets_txns = await indexerClient
+      .lookupAssetTransactions(assetId)
+      .txType('acfg')
+      .do();
+    const metadatas: Record<string, any>[] = [];
+    for (var i = 0; i < assets_txns.transactions.length; i++) {
+      try {
+        const note = assets_txns.transactions[i].note;
+        const decoder = new TextDecoder();
+        const metadata = JSON.parse(decoder.decode(note));
+        metadatas.push(metadata);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    while (true) {
+      if (assets_txns.nextToken) {
+        assets_txns = await indexerClient
+          .lookupAssetTransactions(assetId)
+          .txType('acfg')
+          .nextToken(assets_txns.nextToken)
+          .do();
+        for (var i = 0; i < assets_txns.transactions.length; i++) {
+          try {
+            const note = assets_txns.transactions[i].note;
+            const decoder = new TextDecoder();
+            const metadata = JSON.parse(decoder.decode(note));
+            metadatas.push(metadata);
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      } else {
+        break;
+      }
+    }
+    return metadatas;
+  };
+
+  /**
+   * Calculates the SHA256 hash of a file's content
+   * @param blobContent - The file content as a Blob
+   * @returns A promise resolving to the hex-encoded hash
+   * @private
+   */
+  private static async calculateSHA256(
+    blobContent: Blob | undefined
+  ): Promise<string> {
+    if (!blobContent) {
+      throw Error('No Blob found in calculateSHA256');
+    }
+    try {
+      var buffer = Buffer.from(await blobContent.arrayBuffer());
+      const hash = crypto.createHash('sha256');
+      hash.update(buffer);
+      return hash.digest('hex');
+    } catch (error: any) {
+      throw error;
+    }
+  }
+}
