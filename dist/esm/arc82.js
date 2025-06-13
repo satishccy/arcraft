@@ -10,62 +10,8 @@
  *
  * @see https://arc.algorand.foundation/ARCs/arc-0082
  */
-import { base64UrlToBuffer, base64UrlToUint8Array, getAlgodClient, uint8ArrayToBase64Url, } from './utils';
-/**
- * Types of Algorand URI schemes supported by ARC-82.
- * Defines the supported resource types that can be queried via ARC-82 URIs.
- */
-export var AlgorandUriType;
-(function (AlgorandUriType) {
-    /** Application resource type (algorand://app/{id}) */
-    AlgorandUriType["APPLICATION"] = "app";
-    /** Asset resource type (algorand://asset/{id}) */
-    AlgorandUriType["ASSET"] = "asset";
-})(AlgorandUriType || (AlgorandUriType = {}));
-/**
- * Application storage types supported in ARC-82.
- * Defines the different types of storage that can be queried for applications.
- */
-export var AppStorageType;
-(function (AppStorageType) {
-    /** Box storage - key-value pairs stored in application boxes */
-    AppStorageType["BOX"] = "box";
-    /** Global storage - global state variables of the application */
-    AppStorageType["GLOBAL"] = "global";
-    /** Local storage - account-specific state variables */
-    AppStorageType["LOCAL"] = "local";
-    /** TEAL code - the application's approval and clear state programs */
-    AppStorageType["TEALCODE"] = "tealcode";
-})(AppStorageType || (AppStorageType = {}));
-/**
- * Asset parameter types supported in ARC-82.
- * Defines the asset parameters that can be queried from the blockchain.
- */
-export var AssetParamType;
-(function (AssetParamType) {
-    /** Total supply of the asset */
-    AssetParamType["TOTAL"] = "total";
-    /** Number of decimal places for the asset */
-    AssetParamType["DECIMALS"] = "decimals";
-    /** Default frozen status for new asset holdings */
-    AssetParamType["FROZEN"] = "frozen";
-    /** Unit name/symbol of the asset */
-    AssetParamType["UNITNAME"] = "unitname";
-    /** Full name of the asset */
-    AssetParamType["ASSETNAME"] = "assetname";
-    /** URL associated with the asset */
-    AssetParamType["URL"] = "url";
-    /** Metadata hash of the asset */
-    AssetParamType["METADATAHASH"] = "metadatahash";
-    /** Manager address of the asset */
-    AssetParamType["MANAGER"] = "manager";
-    /** Reserve address of the asset */
-    AssetParamType["RESERVE"] = "reserve";
-    /** Freeze address of the asset */
-    AssetParamType["FREEZE"] = "freeze";
-    /** Clawback address of the asset */
-    AssetParamType["CLAWBACK"] = "clawback";
-})(AssetParamType || (AssetParamType = {}));
+import { base64ToBuffer, getAlgodClient, uint8ArrayToBase64, UniversalBuffer, } from './utils';
+import { AlgorandUriType, AssetParamType, } from './types';
 /**
  * Error class for ARC-82 URI parsing errors.
  * Thrown when a URI cannot be parsed according to the ARC-82 specification.
@@ -107,18 +53,18 @@ export class Arc82QueryError extends Error {
  * @example
  * ```typescript
  * // Parse an ARC-82 URI
- * const parsed = Arc82Parser.parse('algorand://app/123?global=Z2xvYmFsX2tleQ%3D%3D');
+ * const parsed = Arc82.parse('algorand://app/123?global=Z2xvYmFsX2tleQ%3D%3D');
  *
  * // Build an ARC-82 URI
- * const uri = Arc82Parser.buildAppUri(123, {
+ * const uri = Arc82.buildAppUri(123, {
  *   global: ['Z2xvYmFsX2tleQ%3D%3D']
  * });
  *
  * // Query blockchain data
- * const result = await Arc82Parser.queryFromUri(uri, 'testnet');
+ * const result = await Arc82.queryFromUri(uri, 'testnet');
  * ```
  */
-export class Arc82Parser {
+export class Arc82 {
     /**
      * Parses an ARC-82 compliant URI string.
      *
@@ -128,7 +74,7 @@ export class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const parsed = Arc82Parser.parse('algorand://app/123?box=Ym94X2tleQ%3D%3D');
+     * const parsed = Arc82.parse('algorand://app/123?box=Ym94X2tleQ%3D%3D');
      * console.log(parsed.type); // AlgorandUriType.APPLICATION
      * console.log(parsed.id); // 123
      * console.log(parsed.appParams?.box); // ['Ym94X2tleQ%3D%3D']
@@ -303,11 +249,11 @@ export class Arc82Parser {
      * @example
      * ```typescript
      * // Simple application URI
-     * const uri1 = Arc82Parser.buildAppUri(123);
+     * const uri1 = Arc82.buildAppUri(123);
      * // "algorand://app/123"
      *
      * // Application URI with box query
-     * const uri2 = Arc82Parser.buildAppUri(123, {
+     * const uri2 = Arc82.buildAppUri(123, {
      *   box: ['Ym94X2tleQ%3D%3D']
      * });
      * // "algorand://app/123?box=Ym94X2tleQ%3D%3D"
@@ -370,11 +316,11 @@ export class Arc82Parser {
      * @example
      * ```typescript
      * // Simple asset URI
-     * const uri1 = Arc82Parser.buildAssetUri(456);
+     * const uri1 = Arc82.buildAssetUri(456);
      * // "algorand://asset/456"
      *
      * // Asset URI with multiple parameters
-     * const uri2 = Arc82Parser.buildAssetUri(456, {
+     * const uri2 = Arc82.buildAssetUri(456, {
      *   total: true,
      *   decimals: true,
      *   unitname: true
@@ -408,10 +354,10 @@ export class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const isValid1 = Arc82Parser.isValidArc82Uri('algorand://app/123');
+     * const isValid1 = Arc82.isValidArc82Uri('algorand://app/123');
      * // true
      *
-     * const isValid2 = Arc82Parser.isValidArc82Uri('http://example.com');
+     * const isValid2 = Arc82.isValidArc82Uri('http://example.com');
      * // false
      * ```
      */
@@ -432,10 +378,10 @@ export class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const id1 = Arc82Parser.extractId('algorand://app/123');
+     * const id1 = Arc82.extractId('algorand://app/123');
      * // 123
      *
-     * const id2 = Arc82Parser.extractId('invalid://uri');
+     * const id2 = Arc82.extractId('invalid://uri');
      * // null
      * ```
      */
@@ -456,13 +402,13 @@ export class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const type1 = Arc82Parser.extractType('algorand://app/123');
+     * const type1 = Arc82.extractType('algorand://app/123');
      * // AlgorandUriType.APPLICATION
      *
-     * const type2 = Arc82Parser.extractType('algorand://asset/456');
+     * const type2 = Arc82.extractType('algorand://asset/456');
      * // AlgorandUriType.ASSET
      *
-     * const type3 = Arc82Parser.extractType('invalid://uri');
+     * const type3 = Arc82.extractType('invalid://uri');
      * // null
      * ```
      */
@@ -484,7 +430,7 @@ export class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const decoded = Arc82Parser.decodeBase64Url('SGVsbG8gV29ybGQ');
+     * const decoded = Arc82.decodeBase64Url('SGVsbG8gV29ybGQ');
      * // "Hello World"
      * ```
      */
@@ -500,7 +446,7 @@ export class Arc82Parser {
         // Convert base64url to base64
         const base64 = padded.replace(/-/g, '+').replace(/_/g, '/');
         try {
-            return Buffer.from(base64, 'base64').toString('utf-8');
+            return UniversalBuffer.from(base64, 'base64').toString('utf-8');
         }
         catch (error) {
             throw new Arc82ParseError('Failed to decode base64url string');
@@ -514,12 +460,12 @@ export class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const encoded = Arc82Parser.encodeBase64Url('Hello World');
+     * const encoded = Arc82.encodeBase64Url('Hello World');
      * // "SGVsbG8gV29ybGQ"
      * ```
      */
     static encodeBase64Url(str) {
-        const base64 = Buffer.from(str, 'utf-8').toString('base64');
+        const base64 = UniversalBuffer.from(str, 'utf-8').toString('base64');
         return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     }
     // ==================== BLOCKCHAIN QUERY METHODS ====================
@@ -538,8 +484,8 @@ export class Arc82Parser {
      * @example
      * ```typescript
      * const uri = 'algorand://app/123?global=Z2xvYmFsX2tleQ%3D%3D&box=Ym94X2tleQ%3D%3D';
-     * const parsed = Arc82Parser.parse(uri);
-     * const result = await Arc82Parser.queryApplication(parsed, 'testnet');
+     * const parsed = Arc82.parse(uri);
+     * const result = await Arc82.queryApplication(parsed, 'testnet');
      *
      * if (result.success) {
      *   console.log('Application exists:', result.exists);
@@ -585,11 +531,11 @@ export class Arc82Parser {
                             error: undefined,
                         };
                         try {
-                            const boxKeyBuffer = base64UrlToBuffer(boxKey);
+                            const boxKeyBuffer = base64ToBuffer(this.decodeBase64Url(boxKey));
                             const boxResponse = await algod
                                 .getApplicationBoxByName(parsedUri.id, boxKeyBuffer)
                                 .do();
-                            boxData.value = uint8ArrayToBase64Url(boxResponse.value);
+                            boxData.value = uint8ArrayToBase64(boxResponse.value);
                             boxData.exists = true;
                         }
                         catch (error) {
@@ -605,7 +551,8 @@ export class Arc82Parser {
                     result.global = [];
                     const globalState = appInfo.params.globalState || [];
                     for (const globalKey of parsedUri.appParams.global) {
-                        const availableGlobalState = globalState.find((state) => state.key === base64UrlToUint8Array(globalKey));
+                        const availableGlobalState = globalState.find((state) => this.encodeBase64Url(uint8ArrayToBase64(state.key)) ===
+                            globalKey);
                         if (availableGlobalState) {
                             result.global.push({
                                 key: globalKey,
@@ -615,7 +562,7 @@ export class Arc82Parser {
                                     : availableGlobalState.value.uint,
                                 valueType: availableGlobalState.value.type === 1 ? 'bytes' : 'uint',
                                 decodedValue: availableGlobalState.value.type === 1
-                                    ? this.decodeBase64Url(uint8ArrayToBase64Url(availableGlobalState.value.bytes))
+                                    ? new TextDecoder().decode(availableGlobalState.value.bytes)
                                     : undefined,
                                 exists: true,
                                 error: undefined,
@@ -644,7 +591,8 @@ export class Arc82Parser {
                         const appLocalState = appsLocalState.length > 0 ? appsLocalState[0] : undefined;
                         let localState;
                         if (appLocalState && appLocalState.keyValue) {
-                            const availableLocalState = appLocalState.keyValue.find((state) => state.key === base64UrlToUint8Array(localParam.key));
+                            const availableLocalState = appLocalState.keyValue.find((state) => this.encodeBase64Url(uint8ArrayToBase64(state.key)) ===
+                                localParam.key);
                             if (availableLocalState) {
                                 localState = {
                                     key: localParam.key,
@@ -655,7 +603,7 @@ export class Arc82Parser {
                                         : availableLocalState.value.uint,
                                     valueType: availableLocalState.value.type === 1 ? 'bytes' : 'uint',
                                     decodedValue: availableLocalState.value.type === 1
-                                        ? this.decodeBase64Url(uint8ArrayToBase64Url(availableLocalState.value.bytes))
+                                        ? new TextDecoder().decode(availableLocalState.value.bytes)
                                         : undefined,
                                     exists: true,
                                     isOptedIn: true,
@@ -682,8 +630,8 @@ export class Arc82Parser {
                 }
                 if (parsedUri.appParams.tealcode) {
                     result.tealCode = {
-                        approvalProgramB64: uint8ArrayToBase64Url(appInfo.params.approvalProgram || new Uint8Array()),
-                        clearStateProgramB64: uint8ArrayToBase64Url(appInfo.params.clearStateProgram || new Uint8Array()),
+                        approvalProgramB64: uint8ArrayToBase64(appInfo.params.approvalProgram || new Uint8Array()),
+                        clearStateProgramB64: uint8ArrayToBase64(appInfo.params.clearStateProgram || new Uint8Array()),
                         error: undefined,
                     };
                 }
@@ -711,8 +659,8 @@ export class Arc82Parser {
      * @example
      * ```typescript
      * const uri = 'algorand://asset/456?total&decimals&unitname';
-     * const parsed = Arc82Parser.parse(uri);
-     * const result = await Arc82Parser.queryAsset(parsed, 'testnet');
+     * const parsed = Arc82.parse(uri);
+     * const result = await Arc82.queryAsset(parsed, 'testnet');
      *
      * if (result.success && result.exists) {
      *   console.log('Total supply:', result.parameters.total);
@@ -769,7 +717,7 @@ export class Arc82Parser {
                 }
                 if (parsedUri.assetParams.metadatahash) {
                     params.metadatahash = assetInfo.params.metadataHash
-                        ? uint8ArrayToBase64Url(assetInfo.params.metadataHash)
+                        ? uint8ArrayToBase64(assetInfo.params.metadataHash)
                         : undefined;
                 }
                 if (parsedUri.assetParams.manager) {
@@ -809,13 +757,13 @@ export class Arc82Parser {
      * @example
      * ```typescript
      * // Query application data
-     * const appResult = await Arc82Parser.queryFromUri(
+     * const appResult = await Arc82.queryFromUri(
      *   'algorand://app/123?global=Z2xvYmFsX2tleQ%3D%3D',
      *   'testnet'
      * );
      *
      * // Query asset data
-     * const assetResult = await Arc82Parser.queryFromUri(
+     * const assetResult = await Arc82.queryFromUri(
      *   'algorand://asset/456?total&unitname',
      *   'testnet'
      * );
@@ -832,16 +780,16 @@ export class Arc82Parser {
     }
 }
 /** The ARC-82 URI scheme */
-Arc82Parser.SCHEME = 'algorand';
+Arc82.SCHEME = 'algorand';
 /** Path prefix for application URIs */
-Arc82Parser.APP_PATH_PREFIX = '//app/';
+Arc82.APP_PATH_PREFIX = '//app/';
 /** Path prefix for asset URIs */
-Arc82Parser.ASSET_PATH_PREFIX = '//asset/';
+Arc82.ASSET_PATH_PREFIX = '//asset/';
 /**
  * Utility class providing helper functions for working with ARC-82 URIs.
  *
  * This class contains additional validation, example generation, and testing utilities
- * that complement the main Arc82Parser functionality.
+ * that complement the main Arc82 functionality.
  */
 export class Arc82Utils {
     /**
@@ -895,7 +843,7 @@ export class Arc82Utils {
     static validateGrammar(uri) {
         const errors = [];
         try {
-            const parsed = Arc82Parser.parse(uri);
+            const parsed = Arc82.parse(uri);
             // Additional grammar validation beyond basic parsing
             if (parsed.type === AlgorandUriType.APPLICATION && parsed.appParams) {
                 // Validate local storage requires algorandaddress

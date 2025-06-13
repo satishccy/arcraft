@@ -5,9 +5,6 @@
 /* eslint-disable import/no-unresolved */
 import { ALGORAND_ZERO_ADDRESS_STRING } from 'algosdk';
 import { getAlgodClient } from './utils';
-import { Arc3 } from './arc3';
-import { Arc69 } from './arc69';
-import { Arc19 } from './arc19';
 /**
  * Base class for working with Algorand Standard Assets (ASAs)
  * Provides core functionality for interacting with assets on the Algorand blockchain
@@ -31,39 +28,7 @@ export class CoreAsset {
      */
     static async fromId(id, network) {
         const assetParams = await this.fetchAssetParams(id, network);
-        if (Arc3.isArc3(assetParams.name || '', assetParams.url || '', id)) {
-            return await Arc3.fromAssetParams(id, assetParams, network);
-        }
-        else if (Arc19.isArc19(assetParams.url || '')) {
-            return await Arc19.fromAssetParams(id, assetParams, network);
-        }
-        else if (await Arc69.isArc69(assetParams.url || '', id, network)) {
-            return await Arc69.fromAssetParams(id, assetParams, network);
-        }
-        else {
-            return new CoreAsset(id, assetParams, network);
-        }
-    }
-    /**
-     * Checks if this asset is ARC-3 compliant
-     * @returns True if the asset follows ARC-3 standard
-     */
-    isArc3() {
-        return Arc3.isArc3(this.assetParams.name || '', this.assetParams.url || '', this.id);
-    }
-    /**
-     * Checks if this asset is ARC-19 compliant
-     * @returns True if the asset follows ARC-19 standard
-     */
-    isArc19() {
-        return Arc19.isArc19(this.assetParams.url || '');
-    }
-    /**
-     * Checks if this asset is ARC-69 compliant
-     * @returns A promise resolving to true if the asset follows ARC-69 standard
-     */
-    async isArc69() {
-        return await Arc69.isArc69(this.assetParams.url || '', this.id, this.network);
+        return new CoreAsset(id, assetParams, network);
     }
     /**
      * Fetches asset parameters from the Algorand blockchain

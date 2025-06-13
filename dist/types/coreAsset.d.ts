@@ -4,9 +4,6 @@
  */
 import { AssetParams } from 'algosdk/dist/types/client/v2/algod/models/types';
 import { Network } from './types';
-import { Arc3 } from './arc3';
-import { Arc69 } from './arc69';
-import { Arc19 } from './arc19';
 /**
  * Base class for working with Algorand Standard Assets (ASAs)
  * Provides core functionality for interacting with assets on the Algorand blockchain
@@ -23,29 +20,14 @@ export declare class CoreAsset {
      * @param id - The asset ID
      * @param assetParams - The asset parameters
      */
-    protected constructor(id: number, assetParams: AssetParams, network: Network);
+    constructor(id: number, assetParams: AssetParams, network: Network);
     /**
      * Creates a CoreAsset instance from an asset ID
      * @param id - The asset ID to load
      * @param network - The Algorand network to use
      * @returns A promise resolving to a CoreAsset instance
      */
-    static fromId(id: number, network: Network): Promise<CoreAsset | Arc3 | Arc69 | Arc19>;
-    /**
-     * Checks if this asset is ARC-3 compliant
-     * @returns True if the asset follows ARC-3 standard
-     */
-    isArc3(): boolean;
-    /**
-     * Checks if this asset is ARC-19 compliant
-     * @returns True if the asset follows ARC-19 standard
-     */
-    isArc19(): boolean;
-    /**
-     * Checks if this asset is ARC-69 compliant
-     * @returns A promise resolving to true if the asset follows ARC-69 standard
-     */
-    isArc69(): Promise<boolean>;
+    static fromId(id: number, network: Network): Promise<CoreAsset>;
     /**
      * Fetches asset parameters from the Algorand blockchain
      * @param id - The asset ID to fetch

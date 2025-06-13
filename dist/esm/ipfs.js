@@ -30,9 +30,6 @@ export class IPFS {
         if (this.provider === 'pinata' && this.config.provider === 'pinata') {
             if (typeof file === 'string') {
                 // Node.js environment - file is a path
-                if (!fileName) {
-                    throw new Error('fileName is required when uploading from file path');
-                }
                 const result = await uploadToPinata({
                     file,
                     name: fileName,
@@ -50,12 +47,10 @@ export class IPFS {
                 return result.IpfsHash;
             }
         }
-        else if (this.provider === 'filebase' && this.config.provider === 'filebase') {
+        else if (this.provider === 'filebase' &&
+            this.config.provider === 'filebase') {
             if (typeof file === 'string') {
                 // Node.js environment - file is a path
-                if (!fileName) {
-                    throw new Error('fileName is required when uploading from file path');
-                }
                 const result = await uploadToFilebase({
                     file,
                     name: fileName,
@@ -94,7 +89,8 @@ export class IPFS {
             });
             return result.IpfsHash;
         }
-        else if (this.provider === 'filebase' && this.config.provider === 'filebase') {
+        else if (this.provider === 'filebase' &&
+            this.config.provider === 'filebase') {
             const result = await uploadJsonToFilebase({
                 json,
                 name: fileName,

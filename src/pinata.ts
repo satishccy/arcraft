@@ -141,7 +141,7 @@ async function uploadToPinataNode({
     );
     return res.data as PinataResponse;
   } catch (error) {
-    console.log(':ERROR', error);
+    console.error(`Error uploading file to Pinata: ${error}`);
     throw error;
   }
 }
@@ -183,7 +183,7 @@ async function uploadToPinataBrowser({
     );
     return res.data as PinataResponse;
   } catch (error) {
-    console.log(':ERROR', error);
+    console.error(`Error uploading file to Pinata: ${error}`);
     throw error;
   }
 }
@@ -217,7 +217,7 @@ export interface PinataJsonUploadOptions {
   /**
    * Name for the JSON file in Pinata
    */
-  name: string;
+  name?: string;
   /**
    * Pinata API JWT token for authentication
    */
@@ -238,7 +238,7 @@ async function uploadJsonToPinata({
   try {
     const data = JSON.stringify({
       pinataContent: json,
-      pinataMetadata: { name: name },
+      pinataMetadata: { name: name || "metadata.json" },
     });
 
     const res = await axios.post(
@@ -253,7 +253,7 @@ async function uploadJsonToPinata({
     );
     return res.data as PinataResponse;
   } catch (error) {
-    console.log(':ERROR', error);
+    console.error(`Error uploading JSON to Pinata: ${error}`);
     throw error;
   }
 }

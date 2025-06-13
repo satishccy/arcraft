@@ -33,9 +33,6 @@ class IPFS {
         if (this.provider === 'pinata' && this.config.provider === 'pinata') {
             if (typeof file === 'string') {
                 // Node.js environment - file is a path
-                if (!fileName) {
-                    throw new Error('fileName is required when uploading from file path');
-                }
                 const result = await (0, pinata_1.uploadToPinata)({
                     file,
                     name: fileName,
@@ -53,12 +50,10 @@ class IPFS {
                 return result.IpfsHash;
             }
         }
-        else if (this.provider === 'filebase' && this.config.provider === 'filebase') {
+        else if (this.provider === 'filebase' &&
+            this.config.provider === 'filebase') {
             if (typeof file === 'string') {
                 // Node.js environment - file is a path
-                if (!fileName) {
-                    throw new Error('fileName is required when uploading from file path');
-                }
                 const result = await (0, filebase_1.uploadToFilebase)({
                     file,
                     name: fileName,
@@ -97,7 +92,8 @@ class IPFS {
             });
             return result.IpfsHash;
         }
-        else if (this.provider === 'filebase' && this.config.provider === 'filebase') {
+        else if (this.provider === 'filebase' &&
+            this.config.provider === 'filebase') {
             const result = await (0, filebase_1.uploadJsonToFilebase)({
                 json,
                 name: fileName,

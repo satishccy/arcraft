@@ -18,6 +18,7 @@ declare class Arc3 extends CoreAsset {
      * Creates an instance of Arc3.
      * @param id - The asset ID
      * @param params - The asset parameters from the Algorand blockchain
+     * @param network - The Algorand network this asset exists on
      * @param metadata - The metadata associated with the asset
      */
     private constructor();
@@ -25,13 +26,14 @@ declare class Arc3 extends CoreAsset {
      * Fetches metadata from a given URL
      * @param url - The URL to fetch metadata from
      * @returns A promise resolving to the metadata object
+     * @throws Error if metadata cannot be fetched or parsed
      */
     private static fetchMetadata;
     /**
      * Resolves URLs, handling IPFS protocol and ID replacements
-     * @param url - The URL to resolve
+     * @param url - The URL to resolve (may contain {id} placeholder)
      * @param id - The asset ID to replace in the URL if needed
-     * @returns The resolved URL
+     * @returns The resolved URL with proper protocol
      */
     static resolveUrl(url: string, id: number): string;
     /**
@@ -39,21 +41,35 @@ declare class Arc3 extends CoreAsset {
      * @param id - The asset ID to load
      * @param network - The Algorand network to use
      * @returns A promise resolving to an Arc3 instance
+     * @throws Error if the asset cannot be loaded
      */
     static fromId(id: number, network: Network): Promise<Arc3>;
+    /**
+     * Creates an Arc3 instance from existing asset parameters
+     * @param id - The asset ID
+     * @param assetParams - The asset parameters from the blockchain
+     * @param network - The Algorand network to use
+     * @returns A promise resolving to an Arc3 instance
+     */
     static fromAssetParams(id: number, assetParams: AssetParams, network: Network): Promise<Arc3>;
     /**
      * Checks if the asset has a valid ARC-3 name
+     * @param name - The asset name to validate
      * @returns True if the asset name is ARC-3 compliant
      */
     static hasValidName(name: string): boolean;
     /**
      * Checks if the asset has a valid ARC-3 URL
+     * @param url - The asset URL to validate
+     * @param id - The asset ID for URL resolution
      * @returns True if the asset URL is ARC-3 compliant
      */
     static hasValidUrl(url: string, id: number): boolean;
     /**
      * Checks if the asset is ARC-3 compliant
+     * @param name - The asset name to check
+     * @param url - The asset URL to check
+     * @param id - The asset ID for URL resolution
      * @returns True if the asset is ARC-3 compliant
      */
     static isArc3(name: string, url: string, id: number): boolean;
@@ -68,19 +84,21 @@ declare class Arc3 extends CoreAsset {
      */
     getMetadataUrl(): string;
     /**
-     * Gets the image associated with the asset
-     * @returns The image object
+     * Gets the image URL associated with the asset
+     * @returns The resolved image URL or empty string if no image
      */
     getImageUrl(): string;
     /**
      * Gets the image as a base64 encoded string
      * @returns A promise resolving to the base64 encoded image
+     * @throws Error if no image is available or fetch fails
      */
     getImageBase64(): Promise<string>;
     /**
      * Creates a new ARC-3 compliant NFT on the Algorand blockchain
-     * @param options - The configuration options for the NFT
+     * @param options - The configuration options for creating the ARC-3 NFT
      * @returns A promise resolving to an object containing the transaction ID and asset ID
+     * @throws Error if creation fails
      */
     static create({ name, unitName, creator, ipfs, image, properties, network, defaultFrozen, manager, reserve, freeze, clawback, total, decimals, }: {
         /** The name of the asset */
@@ -122,9 +140,10 @@ declare class Arc3 extends CoreAsset {
         assetId: number;
     }>;
     /**
-     * Calculates the SHA256 hash of a file's content
-     * @param blobContent - The file content as a Blob
-     * @returns A promise resolving to the hex-encoded hash
+     * Calculates SHA256 hash of blob content
+     * @param blobContent - The blob content to hash
+     * @returns Promise resolving to hex-encoded hash string
+     * @throws Error if no blob content provided
      * @private
      */
     private static calculateSHA256;

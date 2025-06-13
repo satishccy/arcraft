@@ -57,5 +57,5 @@ export declare class IPFS {
      * @returns Promise resolving to the IPFS content identifier (CID)
      * @throws Error if provider is not supported or upload fails
      */
-    uploadJson(json: object, fileName: string): Promise<string>;
+    uploadJson(json: object, fileName?: string): Promise<string>;
 }

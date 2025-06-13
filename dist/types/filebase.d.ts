@@ -76,7 +76,7 @@ export interface FilebaseJsonUploadOptions {
     /**
      * Name for the JSON file in Filebase
      */
-    name: string;
+    name?: string;
     /**
      * Filebase API token for authentication
      */
@@ -84,9 +84,10 @@ export interface FilebaseJsonUploadOptions {
 }
 /**
  * Uploads a JSON object to Filebase IPFS service
- * @param options - JSON upload configuration options
+ * Converts the JSON to a string and uploads as a file
+ * @param options - Upload configuration options
  * @returns Promise resolving to the Filebase API response with IPFS hash
- * @throws Error if upload fails
+ * @throws Error if upload fails or JSON serialization fails
  */
 declare function uploadJsonToFilebase({ json, name, token, }: FilebaseJsonUploadOptions): Promise<FilebaseResponse>;
 export { uploadToFilebase, uploadJsonToFilebase };

@@ -42,12 +42,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Arc19 = void 0;
-const algosdk_1 = __importDefault(require("algosdk"));
-const axios_1 = __importDefault(require("axios"));
-const mime_types_1 = __importDefault(require("mime-types"));
+const algosdk_1 = __importStar(require("algosdk"));
+const mimeUtils_1 = require("./mimeUtils");
 const fs_1 = __importDefault(require("fs"));
-const crypto_1 = __importDefault(require("crypto"));
-const multiformats = __importStar(require("multiformats"));
+const cid_1 = require("multiformats/cid");
+const digest = __importStar(require("multiformats/hashes/digest"));
 const utils_1 = require("./utils");
 const const_1 = require("./const");
 const coreAsset_1 = require("./coreAsset");
@@ -60,12 +59,20 @@ class Arc19 extends coreAsset_1.CoreAsset {
      * Creates an instance of Arc19.
      * @param id - The asset ID
      * @param params - The asset parameters from the Algorand blockchain
+     * @param network - The Algorand network this asset exists on
      * @param metadata - The metadata associated with the asset
      */
     constructor(id, params, network, metadata) {
         super(id, params, network);
         this.metadata = metadata;
     }
+    /**
+     * Resolves template-ipfs URLs to standard IPFS URLs using reserve address
+     * Handles the ARC-19 template format: template-ipfs://{ipfscid:1:raw:reserve:sha2-256}
+     * @param url - The template-ipfs URL to resolve
+     * @param reserveAddr - The reserve address to use for CID generation
+     * @returns The resolved IPFS URL or empty string if invalid
+     */
     static resolveUrl(url, reserveAddr) {
         let chunks = url.split('://');
         // Check if prefix is template-ipfs and if {ipfscid:..} is where CID would normally be
@@ -99,8 +106,8 @@ class Arc19 extends coreAsset_1.CoreAsset {
             }
             // get 32 bytes Uint8Array reserve address - treating it as 32-byte sha2-256 hash
             const addr = algosdk_1.default.decodeAddress(reserveAddr);
-            const mhdigest = multiformats.digest.create(0x12, addr.publicKey);
-            const cid = multiformats.CID.create(parseInt(cidVersion), cidCodecCode, mhdigest);
+            const mhdigest = digest.create(0x12, addr.publicKey);
+            const cid = cid_1.CID.create(parseInt(cidVersion), cidCodecCode, mhdigest);
             const ipfsCid = cid.toString() + '/' + chunks[1].split('/').slice(1).join('/');
             return `${const_1.IPFS_GATEWAY}${ipfsCid}`;
         }
@@ -113,32 +120,45 @@ class Arc19 extends coreAsset_1.CoreAsset {
      * @param id - The asset ID to load
      * @param network - The Algorand network to use
      * @returns A promise resolving to an Arc19 instance
+     * @throws Error if the asset cannot be loaded
      */
     static async fromId(id, network) {
         const asset = await coreAsset_1.CoreAsset.fromId(id, network);
         let metadata = {};
         try {
             const metadataUrl = _a.resolveUrl(asset.getUrl(), asset.getReserve());
-            const response = await axios_1.default.get(metadataUrl);
-            metadata = response.data;
+            const response = await fetch(metadataUrl);
+            metadata = await response.json();
         }
         catch (e) {
             // Metadata fetch failed, use empty object
         }
         return new _a(id, asset.assetParams, network, metadata);
     }
+    /**
+     * Creates an Arc19 instance from existing asset parameters
+     * @param id - The asset ID
+     * @param assetParams - The asset parameters from the blockchain
+     * @param network - The Algorand network to use
+     * @returns A promise resolving to an Arc19 instance
+     */
     static async fromAssetParams(id, assetParams, network) {
         let metadata = {};
         try {
             const metadataUrl = _a.resolveUrl(assetParams.url || '', assetParams.reserve || '');
-            const response = await axios_1.default.get(metadataUrl);
-            metadata = response.data;
+            const response = await fetch(metadataUrl);
+            metadata = await response.json();
         }
         catch (e) {
             // Metadata fetch failed, use empty object
         }
         return new _a(id, assetParams, network, metadata);
     }
+    /**
+     * Validates if a URL conforms to ARC-19 template-ipfs format
+     * @param url - The URL to validate
+     * @returns True if the URL is valid ARC-19 template format
+     */
     static hasValidUrl(url) {
         if (!url) {
             return false;
@@ -171,27 +191,37 @@ class Arc19 extends coreAsset_1.CoreAsset {
         }
         return true;
     }
+    /**
+     * Checks if an asset is ARC-19 compliant based on its URL
+     * @param url - The asset URL to check
+     * @returns True if the asset follows ARC-19 standards
+     */
     static isArc19(url) {
         return _a.hasValidUrl(url);
     }
+    /**
+     * Calculates SHA256 hash of blob content
+     * @param blobContent - The blob content to hash
+     * @returns Promise resolving to hex-encoded hash string
+     * @throws Error if no blob content provided
+     * @private
+     */
     static async calculateSHA256(blobContent) {
         if (!blobContent) {
             throw Error('No Blob found in calculateSHA256');
         }
         try {
-            var buffer = Buffer.from(await blobContent.arrayBuffer());
-            const hash = crypto_1.default.createHash('sha256');
-            hash.update(buffer);
-            return hash.digest('hex');
+            const buffer = await blobContent.arrayBuffer();
+            return await (0, utils_1.calculateSHA256)(buffer);
         }
         catch (error) {
             throw error;
         }
     }
     /**
-     * Converts a codec code to its string representation
+     * Converts numeric codec code to string representation
      * @param code - The numeric codec code
-     * @returns The codec string representation
+     * @returns The string representation of the codec
      * @private
      */
     static codeToCodec(code) {
@@ -207,21 +237,21 @@ class Arc19 extends coreAsset_1.CoreAsset {
         }
     }
     /**
-     * Creates a reserve address and asset URL from an IPFS CID
-     * @param ipfsCid - The IPFS content identifier
-     * @returns An object containing the asset URL and reserve address
+     * Creates a reserve address from an IPFS CID for ARC-19 template resolution
+     * @param ipfsCid - The IPFS CID to convert
+     * @returns The Algorand address derived from the CID
      * @private
      */
     static createReserveAddressFromIpfsCid(ipfsCid) {
-        const decoded = multiformats.CID.parse(ipfsCid);
+        const decoded = cid_1.CID.parse(ipfsCid);
         const version = decoded.version;
         const codec = this.codeToCodec(decoded.code);
         const assetURL = `template-ipfs://{ipfscid:${version}:${codec}:reserve:sha2-256}`;
-        const reserveAddress = algosdk_1.default.encodeAddress(Uint8Array.from(Buffer.from(decoded.multihash.digest)));
+        const reserveAddress = algosdk_1.default.encodeAddress(Uint8Array.from(utils_1.UniversalBuffer.from(decoded.multihash.digest)));
         return { assetURL, reserveAddress };
     }
     /**
-     * Resolves standard URLs, handling HTTP/HTTPS and IPFS protocols
+     * Resolves standard URLs (HTTP/HTTPS and IPFS)
      * @param url - The URL to resolve
      * @returns The resolved URL with proper protocol
      * @private
@@ -245,7 +275,7 @@ class Arc19 extends coreAsset_1.CoreAsset {
         return this.metadata;
     }
     /**
-     * Gets the resolved image URL for this ARC-19 asset
+     * Gets the image URL for this ARC-19 asset
      * @returns The resolved image URL
      */
     getImageUrl() {
@@ -257,6 +287,7 @@ class Arc19 extends coreAsset_1.CoreAsset {
     /**
      * Gets the image as a base64 encoded string
      * @returns A promise resolving to the base64 encoded image
+     * @throws Error if no image is available or fetch fails
      */
     async getImageBase64() {
         if (!this.metadata.image) {
@@ -266,11 +297,11 @@ class Arc19 extends coreAsset_1.CoreAsset {
         const imageResponse = await fetch(imageUrl);
         const imageBlob = await imageResponse.blob();
         const imageBuffer = await imageBlob.arrayBuffer();
-        const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+        const imageBase64 = utils_1.UniversalBuffer.from(imageBuffer).toString('base64');
         return imageBase64;
     }
     /**
-     * Gets the metadata URL for this ARC-19 asset by resolving the template-ipfs URL
+     * Gets the metadata URL for this ARC-19 asset using the reserve address
      * @returns The resolved metadata URL
      */
     getMetadataUrl() {
@@ -293,8 +324,8 @@ class Arc19 extends coreAsset_1.CoreAsset {
             return '';
         }
         const address = algosdk_1.default.decodeAddress(reserve);
-        const mhdigest = multiformats.digest.create(0x12, address.publicKey);
-        const cid = multiformats.CID.create(parseInt(cidVersion), cidCodecCode, mhdigest);
+        const mhdigest = digest.create(0x12, address.publicKey);
+        const cid = cid_1.CID.create(parseInt(cidVersion), cidCodecCode, mhdigest);
         return (const_1.IPFS_GATEWAY +
             cid.toString() +
             '/' +
@@ -305,6 +336,9 @@ exports.Arc19 = Arc19;
 _a = Arc19;
 /**
  * Creates a new ARC-19 compliant NFT on the Algorand blockchain
+ * @param options - The configuration options for creating the ARC-19 NFT
+ * @returns A promise resolving to an object containing the transaction ID and asset ID
+ * @throws Error if creation fails
  */
 Arc19.create = async ({ name, unitName, creator, ipfs, image, properties, network, defaultFrozen = false, manager = undefined, freeze = undefined, clawback = undefined, total = 1, decimals = 0, }) => {
     // Upload image to IPFS
@@ -315,7 +349,9 @@ Arc19.create = async ({ name, unitName, creator, ipfs, image, properties, networ
     else {
         imageCid = await ipfs.upload(image.file, image.name);
     }
-    const mimeType = mime_types_1.default.lookup(image.name) || 'application/octet-stream';
+    const mimeType = typeof image.file === 'string'
+        ? (0, mimeUtils_1.lookup)(image.name)
+        : (0, mimeUtils_1.lookupFromFile)(image.file);
     let blob;
     if (typeof image.file === 'string') {
         blob = new Blob([await fs_1.default.promises.readFile(image.file)], {
@@ -341,122 +377,135 @@ Arc19.create = async ({ name, unitName, creator, ipfs, image, properties, networ
     const { assetURL, reserveAddress } = _a.createReserveAddressFromIpfsCid(metadataCid);
     const algodClient = (0, utils_1.getAlgodClient)(network);
     const suggestedParams = await algodClient.getTransactionParams().do();
-    const nft_txn = algosdk_1.default.makeAssetCreateTxnWithSuggestedParamsFromObject({
-        sender: creator.address,
-        suggestedParams,
-        defaultFrozen: defaultFrozen,
-        unitName: unitName,
-        assetName: name,
-        manager: manager,
-        reserve: reserveAddress,
-        freeze: freeze,
-        clawback: clawback,
-        assetURL: assetURL,
-        total: total,
-        decimals: decimals,
+    const atc = new algosdk_1.AtomicTransactionComposer();
+    atc.addTransaction({
+        txn: algosdk_1.default.makeAssetCreateTxnWithSuggestedParamsFromObject({
+            sender: creator.address,
+            suggestedParams,
+            defaultFrozen: defaultFrozen,
+            unitName: unitName,
+            assetName: name,
+            manager: creator.address,
+            reserve: reserveAddress,
+            freeze: freeze,
+            clawback: clawback,
+            assetURL: assetURL,
+            total: total,
+            decimals: decimals,
+        }),
+        signer: creator.signer,
     });
-    const signed = await creator.signer([nft_txn], [0]);
-    const txid = await algodClient.sendRawTransaction(signed[0]).do();
-    const result = await algosdk_1.default.waitForConfirmation(algodClient, txid.txid, 3);
+    const result = await atc.submit(algodClient);
+    const txnStatus = await algosdk_1.default.waitForConfirmation(algodClient, result[0], 3);
     return {
-        transactionId: txid.txid,
-        assetId: Number(result.assetIndex || 0),
+        transactionId: result[0],
+        assetId: Number(txnStatus.assetIndex || 0),
     };
 };
 /**
- * Updates the metadata and/or image of an existing ARC-19 NFT
- * @param options - Configuration options for updating the NFT
- * @returns A promise resolving to an object with status and transaction details
+ * Updates an existing ARC-19 NFT's metadata
+ * @param options - The configuration options for updating the ARC-19 NFT
+ * @returns A promise resolving to the transaction confirmation
+ * @throws Error if update fails or manager doesn't have permission
  */
 Arc19.update = async ({ manager, properties, image, assetId, ipfs, network, }) => {
-    try {
-        let metadata_url = '';
-        const indexerClient = (0, utils_1.getIndexerClient)(network);
-        var indexer_result = await indexerClient
-            .lookupAssetByID(Number(assetId))
-            .do();
-        if (indexer_result.asset.params.url &&
-            _a.hasValidUrl(indexer_result.asset.params.url)) {
-            metadata_url = _a.resolveUrl(indexer_result.asset.params.url, indexer_result.asset.params.reserve || '');
-            if (metadata_url === '') {
-                return { status: false, err: 'Unable to resolve ipfs url' };
-            }
+    let metadata_url = '';
+    const indexerClient = (0, utils_1.getIndexerClient)(network);
+    var indexer_result = await indexerClient
+        .lookupAssetByID(Number(assetId))
+        .do();
+    if (manager.address !== indexer_result.asset.params.manager) {
+        throw new Error('You are not the manager of the NFT');
+    }
+    if (indexer_result.asset.params.url &&
+        _a.hasValidUrl(indexer_result.asset.params.url)) {
+        metadata_url = _a.resolveUrl(indexer_result.asset.params.url, indexer_result.asset.params.reserve || '');
+        if (metadata_url === '') {
+            throw new Error('Unable to resolve ipfs url');
+        }
+    }
+    else {
+        throw new Error('Not a Mutable NFT');
+    }
+    const metadata_res = await fetch(metadata_url);
+    const metadata = await metadata_res.json();
+    if (image) {
+        const mimeType = typeof image.file === 'string'
+            ? (0, mimeUtils_1.lookup)(image.name)
+            : (0, mimeUtils_1.lookupFromFile)(image.file);
+        let blob;
+        if (typeof image.file === 'string') {
+            blob = new Blob([await fs_1.default.promises.readFile(image.file)], {
+                type: mimeType,
+            });
         }
         else {
-            return { status: false, err: 'Not a Mutable NFT' };
+            blob = new Blob([await image.file.arrayBuffer()], {
+                type: mimeType,
+            });
         }
-        const metadata_res = await fetch(const_1.IPFS_GATEWAY + metadata_url.split('://')[1]);
-        const metadata = await metadata_res.json();
-        if (image) {
-            const mimeType = mime_types_1.default.lookup(image.name) || 'application/octet-stream';
-            let blob;
-            if (typeof image.file === 'string') {
-                blob = new Blob([await fs_1.default.promises.readFile(image.file)], {
-                    type: mimeType,
-                });
-            }
-            else {
-                blob = new Blob([await image.file.arrayBuffer()], {
-                    type: mimeType,
-                });
-            }
-            const hash = await _a.calculateSHA256(blob);
-            let imageCid;
-            if (typeof image.file === 'string') {
-                imageCid = await ipfs.upload(image.file, image.name);
-            }
-            else {
-                imageCid = await ipfs.upload(image.file, image.name);
-            }
-            metadata.image = `ipfs://${imageCid}`;
-            metadata.image_integrity = `sha256-${hash}`;
-            metadata.image_mimetype = mimeType;
+        const hash = await _a.calculateSHA256(blob);
+        let imageCid;
+        if (typeof image.file === 'string') {
+            imageCid = await ipfs.upload(image.file, image.name);
         }
-        // adding owner
-        if (properties) {
-            metadata.properties = properties;
+        else {
+            imageCid = await ipfs.upload(image.file, image.name);
         }
-        if (image || properties) {
-            const metadataCid = await ipfs.uploadJson(metadata, 'metadata.json');
-            const { assetURL, reserveAddress } = _a.createReserveAddressFromIpfsCid(metadataCid);
-            const algodClient = (0, utils_1.getAlgodClient)(network);
-            const suggestedParams = await algodClient.getTransactionParams().do();
-            const updatetxn = algosdk_1.default.makeAssetConfigTxnWithSuggestedParamsFromObject({
+        metadata.image = `ipfs://${imageCid}`;
+        metadata.image_integrity = `sha256-${hash}`;
+        metadata.image_mimetype = mimeType;
+    }
+    // adding owner
+    if (properties) {
+        metadata.properties = properties;
+    }
+    if (image || properties) {
+        const metadataCid = await ipfs.uploadJson(metadata, 'metadata.json');
+        const { assetURL, reserveAddress } = _a.createReserveAddressFromIpfsCid(metadataCid);
+        const algodClient = (0, utils_1.getAlgodClient)(network);
+        const suggestedParams = await algodClient.getTransactionParams().do();
+        const atc = new algosdk_1.AtomicTransactionComposer();
+        atc.addTransaction({
+            txn: algosdk_1.default.makeAssetConfigTxnWithSuggestedParamsFromObject({
                 sender: manager.address,
                 suggestedParams: suggestedParams,
                 manager: manager.address,
                 freeze: indexer_result.asset.params.freeze
-                    ? indexer_result.asset.params.freeze
+                    ? indexer_result.asset.params.freeze ===
+                        algosdk_1.ALGORAND_ZERO_ADDRESS_STRING
+                        ? undefined
+                        : indexer_result.asset.params.freeze
                     : undefined,
                 clawback: indexer_result.asset.params.clawback
-                    ? indexer_result.asset.params.clawback
+                    ? indexer_result.asset.params.clawback ===
+                        algosdk_1.ALGORAND_ZERO_ADDRESS_STRING
+                        ? undefined
+                        : indexer_result.asset.params.clawback
                     : undefined,
                 reserve: reserveAddress,
                 assetIndex: Number(assetId),
                 strictEmptyAddressChecking: false,
-            });
-            const signed = await manager.signer([updatetxn], [0]);
-            const txid = await algodClient.sendRawTransaction(signed[0]).do();
-            const result = await algosdk_1.default.waitForConfirmation(algodClient, txid.txid, 3);
-            return {
-                status: true,
-                confirmedRound: result.confirmedRound,
-                transactionId: txid.txid,
-            };
-        }
-        else {
-            return { status: false, err: 'No changes to update' };
-        }
+            }),
+            signer: manager.signer,
+        });
+        const result = await atc.submit(algodClient);
+        const txnStatus = await algosdk_1.default.waitForConfirmation(algodClient, result[0], 3);
+        return {
+            confirmedRound: txnStatus.confirmedRound,
+            transactionId: result[0],
+        };
     }
-    catch (e) {
-        return { status: false, err: e };
+    else {
+        throw new Error('No changes to update');
     }
 };
 /**
- * Retrieves all historical versions of metadata for an ARC-19 asset
+ * Gets all metadata versions for an ARC-19 asset by examining transaction history
  * @param assetId - The asset ID to get metadata versions for
  * @param network - The Algorand network to search on
- * @returns A promise resolving to an array of metadata objects with round numbers
+ * @returns Promise resolving to array of metadata versions with timestamps
+ * @throws Error if unable to fetch transaction history
  */
 Arc19.getMetadataVersions = async (assetId, network) => {
     const indexerClient = (0, utils_1.getIndexerClient)(network);
@@ -477,7 +526,7 @@ Arc19.getMetadataVersions = async (assetId, network) => {
             var round = assets_txns.transactions[i].confirmedRound || 0;
             var metadata_url = _a.resolveUrl(url, assets_txns.transactions[i].assetConfigTransaction?.params?.reserve ||
                 '');
-            var metadata_res = await fetch(const_1.IPFS_GATEWAY + metadata_url.split('://')[1]);
+            var metadata_res = await fetch(metadata_url);
             var metadata = await metadata_res.json();
             var m = {};
             m[round.toString()] = metadata;
@@ -505,7 +554,7 @@ Arc19.getMetadataVersions = async (assetId, network) => {
                     var round = assets_txns.transactions[i].confirmedRound || 0;
                     var metadata_url = _a.resolveUrl(url, assets_txns.transactions[i].assetConfigTransaction?.params
                         ?.reserve || '');
-                    var metadata_res = await fetch(const_1.IPFS_GATEWAY + metadata_url.split('://')[1]);
+                    var metadata_res = await fetch(metadata_url);
                     var metadata = await metadata_res.json();
                     var m = {};
                     m[round.toString()] = metadata;

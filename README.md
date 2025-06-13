@@ -17,8 +17,11 @@ View the documentation [here](https://satishccy.github.io/arcraft/).
 - [API Reference](#-api-reference)
 - [Examples](#-examples)
 - [Requirements](#-requirements)
+- [API Documentation](#-api-documentation)
 - [Contributing](#-contributing)
 - [License](#-license)
+- [Links](#-links)
+- [Acknowledgments](#-acknowledgments)
 
 ## ✨ Features
 
@@ -634,6 +637,95 @@ Choose at least one IPFS provider:
 - npm or yarn package manager
 - Code editor with TypeScript support (recommended: VS Code)
 
+## 📚 API Documentation
+
+### TypeDoc Documentation
+
+This package is fully documented with TypeDoc comments. You can generate and view the documentation in several ways:
+
+#### View Online Documentation
+
+Visit our comprehensive online documentation: [https://satishccy.github.io/arcraft/](https://satishccy.github.io/arcraft/)
+
+#### Generate Local Documentation
+
+```bash
+# Clone the repository
+git clone https://github.com/satishccy/arcraft.git
+cd arcraft
+
+# Install dependencies
+npm install
+
+# Generate TypeDoc documentation
+npm run docs
+
+# Open the generated documentation
+open docs/index.html
+```
+
+#### In-Editor Documentation
+
+If you're using VS Code or another TypeScript-aware editor, you'll get:
+
+- **IntelliSense**: Auto-completion with parameter hints
+- **Type Information**: Hover over any function to see its signature
+- **Parameter Help**: Detailed information about function parameters
+- **Return Types**: Clear indication of what each function returns
+
+#### Documentation Structure
+
+The generated TypeDoc documentation includes:
+
+- **Classes**: All main classes (CoreAsset, Arc3, Arc19, Arc69, Arc82, IPFS, etc.)
+- **Interfaces**: Type definitions and data structures
+- **Functions**: Utility functions and helper methods
+- **Enums**: Constants and enumerated values
+- **Modules**: Organized by functionality (arc3, arc19, arc69, arc82, ipfs, utils, etc.)
+- **Examples**: Code examples for common use cases
+- **Cross-references**: Links between related types and functions
+
+### Core API Structure
+
+The package is organized into logical modules:
+
+#### Core Classes
+
+- **`CoreAsset`**: Base class for all Algorand Standard Assets
+- **`Arc3`**: ARC-3 NFT implementation with external metadata
+- **`Arc19`**: ARC-19 NFT implementation with template IPFS URIs
+- **`Arc69`**: ARC-69 NFT implementation with embedded metadata
+- **`Arc82`**: ARC-82 blockchain data query implementation
+
+#### Utility Modules
+
+- **`IPFS`**: Universal IPFS integration supporting multiple providers
+- **`utils`**: Algorand client utilities and helper functions
+- **`mimeUtils`**: Cross-platform MIME type detection
+- **`AssetFactory`**: Smart factory for creating appropriate asset instances
+
+#### Provider Integrations
+
+- **`pinata`**: Pinata IPFS service integration
+- **`filebase`**: Filebase IPFS service integration
+
+### TypeScript Support
+
+Full TypeScript support with:
+
+- **Strict Type Checking**: All functions have proper type annotations
+- **Interface Definitions**: Clear interfaces for all data structures
+- **Generic Types**: Type-safe operations across different asset types
+- **Enum Support**: Strongly-typed enums for constants and options
+
+### Error Handling
+
+Comprehensive error handling with custom error classes:
+
+- **`Arc82ParseError`**: Thrown when ARC-82 URIs cannot be parsed
+- **`Arc82QueryError`**: Thrown when blockchain queries fail
+- Standard JavaScript errors for network and validation issues
+
 ## 🤝 Contributing
 
 We welcome contributions! Here's how you can help:
@@ -652,9 +744,48 @@ We welcome contributions! Here's how you can help:
 3. Run tests: `npm test`
 4. Run linter: `npm run lint:fix`
 5. Format code: `npm run format`
-6. Commit your changes: `git commit -m 'Add amazing feature'`
-7. Push to your branch: `git push origin feature/amazing-feature`
-8. Open a Pull Request
+6. Update documentation: `npm run docs`
+7. Commit your changes: `git commit -m 'Add amazing feature'`
+8. Push to your branch: `git push origin feature/amazing-feature`
+9. Open a Pull Request
+
+### Documentation Standards
+
+When contributing, please ensure all code is properly documented:
+
+#### TypeDoc Comment Requirements
+
+All public functions, classes, and interfaces must have:
+
+```typescript
+/**
+ * Brief description of what the function does
+ * @param paramName - Description of the parameter
+ * @param optionalParam - Description (optional)
+ * @returns Description of return value
+ * @throws Error description when function can throw
+ * @example
+ * ```typescript
+ * // Usage example
+ * const result = await myFunction('example');
+ * ```
+ */
+```
+
+#### Documentation Guidelines
+
+- **Functions**: Describe purpose, parameters, return values, and potential errors
+- **Classes**: Describe the class purpose and main functionality
+- **Interfaces**: Document each property and its purpose
+- **Examples**: Include practical usage examples for complex functions
+- **Modules**: Each file should have a module-level description
+
+#### Code Style Requirements
+
+- Follow existing TypeScript style conventions
+- Use meaningful variable and function names
+- Add JSDoc comments for all public APIs
+- Include error handling and validation
 
 ### Contribution Guidelines
 
@@ -663,6 +794,7 @@ We welcome contributions! Here's how you can help:
 - Update documentation for API changes
 - Keep commits atomic and well-described
 - Ensure all tests pass before submitting PR
+- Update TypeDoc comments for any API changes
 
 ### Areas for Contribution
 
@@ -672,6 +804,8 @@ We welcome contributions! Here's how you can help:
 - Browser compatibility improvements
 - Documentation enhancements
 - Example applications
+- Test coverage improvements
+- Error handling enhancements
 
 ## 📄 License
 
@@ -683,6 +817,7 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 - **GitHub Repository**: [https://github.com/satishccy/arcraft](https://github.com/satishccy/arcraft)
 - **npm Package**: [https://www.npmjs.com/package/arcraft](https://www.npmjs.com/package/arcraft)
 - **Issues**: [https://github.com/satishccy/arcraft/issues](https://github.com/satishccy/arcraft/issues)
+- **TypeDoc Configuration**: [./typedoc.config.json](./typedoc.config.json)
 
 ## 🙏 Acknowledgments
 
@@ -690,6 +825,7 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 - The Algorand developer community
 - Contributors to the algosdk-js library
 - IPFS and related decentralized storage providers
+- TypeDoc community for excellent documentation tooling
 
 ---
 

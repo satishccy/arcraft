@@ -1,0 +1,51 @@
+{
+  "name": "arcraft-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@blockshake/defly-connect": "^1.2.1",
+    "@headlessui/react": "^2.2.4",
+    "@heroicons/react": "^2.2.0",
+    "@perawallet/connect": "^1.4.2",
+    "@tailwindcss/vite": "^4.1.8",
+    "@txnlab/use-wallet": "^4.1.0",
+    "@txnlab/use-wallet-react": "^4.1.0",
+    "@txnlab/use-wallet-ui-react": "^0.2.3",
+    "algosdk": "^3.3.1",
+    "arcraft": "link:../../AppData/Local/pnpm/global/5/node_modules/arcraft",
+    "autoprefixer": "^10.4.21",
+    "buffer": "^6.0.3",
+    "clsx": "^2.1.1",
+    "lute-connect": "^1.6.1",
+    "postcss": "^8.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-toastify": "^11.0.5",
+    "tailwindcss": "^4.1.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@tailwindcss/postcss": "^4.1.8",
+    "@types/file-saver": "^2.0.7",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@types/react-router-dom": "^5.3.3",
+    "@vitejs/plugin-react": "^4.4.1",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "file-saver": "^2.0.5",
+    "globals": "^16.0.0",
+    "react-router-dom": "^7.6.2",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.30.1",
+    "vite": "^6.3.5"
+  }
+}

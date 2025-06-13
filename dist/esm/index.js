@@ -5,19 +5,22 @@
  * This package is designed for Node.js backends and provides tools for NFT creation,
  * IPFS integration, and more.
  */
-export * from './coreAsset';
-export * from './arc3';
-export { Arc3 } from './arc3';
-export * from './arc19';
-export { Arc19 } from './arc19';
-export * from './arc69';
-export { Arc69 } from './arc69';
-export { IPFS } from './ipfs';
+// Export base classes and utilities first (no dependencies)
 export * from './types';
 export * from './utils';
+export * from './const';
 export * from './ipfs';
 export * from './pinata';
 export * from './filebase';
-export * from './arc82';
-export { Arc82Parser, Arc82Utils, Arc82ParseError, Arc82QueryError, } from './arc82';
+export * from './mimeUtils';
+// Export CoreAsset (base class, no dependencies on ARC classes)
+export { CoreAsset } from './coreAsset';
+// Export ARC classes (depend on CoreAsset but not each other)
+export { Arc3 } from './arc3';
+export { Arc19 } from './arc19';
+export { Arc69 } from './arc69';
+// Export AssetFactory (depends on all ARC classes)
+export { AssetFactory } from './assetFactory';
+// Export ARC-82 (standalone)
+export { Arc82, Arc82Utils, Arc82ParseError, Arc82QueryError } from './arc82';
 //# sourceMappingURL=index.js.map

@@ -4,6 +4,39 @@
  * ARC-69 stores metadata directly in transaction notes instead of external URLs.
  * @module arc69
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -13,10 +46,9 @@ exports.Arc69 = void 0;
 const coreAsset_1 = require("./coreAsset");
 const utils_1 = require("./utils");
 const const_1 = require("./const");
-const algosdk_1 = __importDefault(require("algosdk"));
-const mime_types_1 = __importDefault(require("mime-types"));
+const algosdk_1 = __importStar(require("algosdk"));
+const mimeUtils_1 = require("./mimeUtils");
 const fs_1 = __importDefault(require("fs"));
-const crypto_1 = __importDefault(require("crypto"));
 /**
  * Class representing an ARC-69 compliant NFT on Algorand.
  * ARC-69 NFTs store metadata in transaction notes rather than external URLs.
@@ -43,19 +75,19 @@ class Arc69 extends coreAsset_1.CoreAsset {
     static async fetchMetadata(assetId, network) {
         try {
             const indexerClient = (0, utils_1.getIndexerClient)(network);
-            const txns = await indexerClient
+            let txns = await indexerClient
                 .lookupAssetTransactions(assetId)
                 .txType('acfg')
                 .do();
             let totalTxns = [...txns.transactions];
             while (true) {
                 if (txns.nextToken) {
-                    const nextTxns = await indexerClient
+                    txns = await indexerClient
                         .lookupAssetTransactions(assetId)
                         .txType('acfg')
                         .nextToken(txns.nextToken)
                         .do();
-                    totalTxns = [...totalTxns, ...nextTxns.transactions];
+                    totalTxns = [...totalTxns, ...txns.transactions];
                 }
                 else {
                     break;
@@ -148,6 +180,7 @@ class Arc69 extends coreAsset_1.CoreAsset {
     static async hasValidMetadata(assetId, network) {
         try {
             const metadata = await _a.fetchMetadata(assetId, network);
+            console.log('metadata', metadata);
             if (metadata) {
                 if (metadata.standard === 'arc69') {
                     return true;
@@ -168,8 +201,8 @@ class Arc69 extends coreAsset_1.CoreAsset {
         if (!url) {
             return false;
         }
-        const mediaType = url.split('#')[1] || '#i'; // Default to image if no media type specified
-        const validMediaTypes = ['#i', '#v', '#a', '#p', '#h'];
+        const mediaType = url.split('#')[1] || 'i'; // Default to image if no media type specified
+        const validMediaTypes = ['i', 'v', 'a', 'p', 'h'];
         if (!validMediaTypes.includes(mediaType)) {
             return false;
         }
@@ -186,7 +219,10 @@ class Arc69 extends coreAsset_1.CoreAsset {
         if (!url) {
             return false;
         }
-        return (_a.hasValidUrl(url) && (await _a.hasValidMetadata(id, network)));
+        const isValidUrl = _a.hasValidUrl(url);
+        const isValidMetadata = await _a.hasValidMetadata(id, network);
+        console.log('isValidUrl', isValidUrl, 'isValidMetadata', isValidMetadata);
+        return isValidUrl && isValidMetadata;
     }
     /**
      * Gets the metadata associated with this ARC-69 asset
@@ -211,7 +247,7 @@ class Arc69 extends coreAsset_1.CoreAsset {
         const imageResponse = await fetch(imageUrl);
         const imageBlob = await imageResponse.blob();
         const imageBuffer = await imageBlob.arrayBuffer();
-        const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+        const imageBase64 = utils_1.UniversalBuffer.from(imageBuffer).toString('base64');
         return imageBase64;
     }
     /**
@@ -227,7 +263,9 @@ class Arc69 extends coreAsset_1.CoreAsset {
         else {
             imageCid = await ipfs.upload(image.file, image.name);
         }
-        const mimeType = mime_types_1.default.lookup(image.name) || 'application/octet-stream';
+        const mimeType = typeof image.file === 'string'
+            ? (0, mimeUtils_1.lookup)(image.name)
+            : (0, mimeUtils_1.lookupFromFile)(image.file);
         let blob;
         if (typeof image.file === 'string') {
             blob = new Blob([await fs_1.default.promises.readFile(image.file)], {
@@ -247,44 +285,34 @@ class Arc69 extends coreAsset_1.CoreAsset {
             mime_type: mimeType,
             properties: properties,
         };
+        console.log(freeze, reserve, clawback, "metadata");
         const client = (0, utils_1.getAlgodClient)(network);
+        const atc = new algosdk_1.AtomicTransactionComposer();
         let sp = await client.getTransactionParams().do();
-        const nft_txn = algosdk_1.default.makeAssetCreateTxnWithSuggestedParamsFromObject({
-            sender: creator.address,
-            suggestedParams: sp,
-            defaultFrozen: defaultFrozen,
-            unitName: unitName,
-            assetName: name,
-            manager: manager,
-            reserve: reserve,
-            freeze: freeze,
-            clawback: clawback,
-            assetURL: `ipfs://${imageCid}#i`,
-            total: total,
-            decimals: decimals,
-        });
-        const signed = await creator.signer([nft_txn], [0]);
-        const txid = await client.sendRawTransaction(signed[0]).do();
-        const result = await algosdk_1.default.waitForConfirmation(client, txid.txid, 3);
-        sp = await client.getTransactionParams().do();
         const noteField = new TextEncoder().encode(JSON.stringify(metadata));
-        const noteTxn = algosdk_1.default.makeAssetConfigTxnWithSuggestedParamsFromObject({
-            sender: creator.address,
-            assetIndex: Number(result.assetIndex || 0),
-            note: noteField,
-            suggestedParams: sp,
-            manager: manager,
-            reserve: reserve,
-            freeze: freeze,
-            clawback: clawback,
-            strictEmptyAddressChecking: false,
+        atc.addTransaction({
+            txn: algosdk_1.default.makeAssetCreateTxnWithSuggestedParamsFromObject({
+                sender: creator.address,
+                suggestedParams: sp,
+                defaultFrozen: defaultFrozen,
+                unitName: unitName,
+                assetName: name,
+                manager: creator.address,
+                reserve: reserve,
+                freeze: freeze,
+                clawback: clawback,
+                assetURL: `ipfs://${imageCid}#i`,
+                total: total,
+                decimals: decimals,
+                note: noteField,
+            }),
+            signer: creator.signer,
         });
-        const signedNoteTxn = await creator.signer([noteTxn], [0]);
-        const txidNote = await client.sendRawTransaction(signedNoteTxn[0]).do();
-        const resultNote = await algosdk_1.default.waitForConfirmation(client, txidNote.txid, 3);
+        const result = await atc.submit(client);
+        const txnStatus = await algosdk_1.default.waitForConfirmation(client, result[0], 3);
         return {
-            transactionId: txid.txid,
-            assetId: Number(result.assetIndex || 0),
+            transactionId: result[0],
+            assetId: Number(txnStatus.assetIndex || 0),
         };
     }
     /**
@@ -298,10 +326,8 @@ class Arc69 extends coreAsset_1.CoreAsset {
             throw Error('No Blob found in calculateSHA256');
         }
         try {
-            var buffer = Buffer.from(await blobContent.arrayBuffer());
-            const hash = crypto_1.default.createHash('sha256');
-            hash.update(buffer);
-            return hash.digest('hex');
+            const buffer = await blobContent.arrayBuffer();
+            return await (0, utils_1.calculateSHA256)(buffer);
         }
         catch (error) {
             throw error;
@@ -318,6 +344,9 @@ _a = Arc69;
 Arc69.update = async ({ manager, properties, assetId, network, }) => {
     const client = (0, utils_1.getAlgodClient)(network);
     const coreAsset = await coreAsset_1.CoreAsset.fromId(assetId, network);
+    if (manager.address !== coreAsset.assetParams.manager) {
+        throw new Error('You are not the manager of the NFT to update');
+    }
     const sp = await client.getTransactionParams().do();
     const metadata = await _a.fetchMetadata(assetId, network);
     if (!metadata) {
@@ -325,23 +354,26 @@ Arc69.update = async ({ manager, properties, assetId, network, }) => {
     }
     metadata.properties = properties;
     const noteField = new TextEncoder().encode(JSON.stringify(metadata));
-    const noteTxn = algosdk_1.default.makeAssetConfigTxnWithSuggestedParamsFromObject({
-        sender: manager.address,
-        assetIndex: assetId,
-        note: noteField,
-        suggestedParams: sp,
-        manager: manager.address,
-        reserve: coreAsset.assetParams.reserve,
-        freeze: coreAsset.assetParams.freeze,
-        clawback: coreAsset.assetParams.clawback,
-        strictEmptyAddressChecking: false,
+    const noteAtc = new algosdk_1.AtomicTransactionComposer();
+    noteAtc.addTransaction({
+        txn: algosdk_1.default.makeAssetConfigTxnWithSuggestedParamsFromObject({
+            sender: manager.address,
+            assetIndex: assetId,
+            note: noteField,
+            suggestedParams: sp,
+            manager: manager.address,
+            reserve: coreAsset.assetParams.reserve,
+            freeze: coreAsset.assetParams.freeze,
+            clawback: coreAsset.assetParams.clawback,
+            strictEmptyAddressChecking: false,
+        }),
+        signer: manager.signer,
     });
-    const signedNoteTxn = await manager.signer([noteTxn], [0]);
-    const txidNote = await client.sendRawTransaction(signedNoteTxn[0]).do();
-    const resultNote = await algosdk_1.default.waitForConfirmation(client, txidNote.txid, 3);
+    const resultNote = await noteAtc.submit(client);
+    const txnStatusNote = await algosdk_1.default.waitForConfirmation(client, resultNote[0], 3);
     return {
-        transactionId: txidNote.txid,
-        confirmedRound: resultNote.confirmedRound,
+        transactionId: resultNote[0],
+        confirmedRound: txnStatusNote.confirmedRound,
     };
 };
 /**

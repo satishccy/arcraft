@@ -11,281 +11,7 @@
  * @see https://arc.algorand.foundation/ARCs/arc-0082
  */
 import { Network } from './types';
-/**
- * Types of Algorand URI schemes supported by ARC-82.
- * Defines the supported resource types that can be queried via ARC-82 URIs.
- */
-export declare enum AlgorandUriType {
-    /** Application resource type (algorand://app/{id}) */
-    APPLICATION = "app",
-    /** Asset resource type (algorand://asset/{id}) */
-    ASSET = "asset"
-}
-/**
- * Application storage types supported in ARC-82.
- * Defines the different types of storage that can be queried for applications.
- */
-export declare enum AppStorageType {
-    /** Box storage - key-value pairs stored in application boxes */
-    BOX = "box",
-    /** Global storage - global state variables of the application */
-    GLOBAL = "global",
-    /** Local storage - account-specific state variables */
-    LOCAL = "local",
-    /** TEAL code - the application's approval and clear state programs */
-    TEALCODE = "tealcode"
-}
-/**
- * Asset parameter types supported in ARC-82.
- * Defines the asset parameters that can be queried from the blockchain.
- */
-export declare enum AssetParamType {
-    /** Total supply of the asset */
-    TOTAL = "total",
-    /** Number of decimal places for the asset */
-    DECIMALS = "decimals",
-    /** Default frozen status for new asset holdings */
-    FROZEN = "frozen",
-    /** Unit name/symbol of the asset */
-    UNITNAME = "unitname",
-    /** Full name of the asset */
-    ASSETNAME = "assetname",
-    /** URL associated with the asset */
-    URL = "url",
-    /** Metadata hash of the asset */
-    METADATAHASH = "metadatahash",
-    /** Manager address of the asset */
-    MANAGER = "manager",
-    /** Reserve address of the asset */
-    RESERVE = "reserve",
-    /** Freeze address of the asset */
-    FREEZE = "freeze",
-    /** Clawback address of the asset */
-    CLAWBACK = "clawback"
-}
-/**
- * Interface for application query parameters.
- * Defines the structure for querying different types of application data.
- */
-export interface AppQueryParams {
-    /** Box storage queries with base64url-encoded keys */
-    box?: string[];
-    /** Global storage queries with base64url-encoded keys */
-    global?: string[];
-    /** Local storage queries with base64url-encoded keys and associated addresses */
-    local?: Array<{
-        /** Base64url-encoded key for the local state */
-        key: string;
-        /** Algorand address whose local state to query */
-        algorandaddress: string;
-    }>;
-    /** Request for TEAL code (approval and clear state programs) */
-    tealcode?: boolean;
-}
-/**
- * Interface for asset query parameters.
- * Defines which asset parameters should be included in the query response.
- */
-export interface AssetQueryParams {
-    /** Query total supply */
-    total?: boolean;
-    /** Query decimal places */
-    decimals?: boolean;
-    /** Query frozen status */
-    frozen?: boolean;
-    /** Query unit name */
-    unitname?: boolean;
-    /** Query asset name */
-    assetname?: boolean;
-    /** Query URL */
-    url?: boolean;
-    /** Query metadata hash */
-    metadatahash?: boolean;
-    /** Query manager address */
-    manager?: boolean;
-    /** Query reserve address */
-    reserve?: boolean;
-    /** Query freeze address */
-    freeze?: boolean;
-    /** Query clawback address */
-    clawback?: boolean;
-}
-/**
- * Interface for parsed Algorand URI.
- * Represents the result of parsing an ARC-82 compliant URI.
- */
-export interface ParsedAlgorandUri {
-    /** Type of URI (app or asset) */
-    type: AlgorandUriType;
-    /** ID of the application or asset */
-    id: number;
-    /** Query parameters for applications (only present if type is APPLICATION) */
-    appParams?: AppQueryParams;
-    /** Query parameters for assets (only present if type is ASSET) */
-    assetParams?: AssetQueryParams;
-    /** Original URI string that was parsed */
-    originalUri: string;
-}
-/**
- * Interface for blockchain query configuration.
- * Defines connection parameters for querying the Algorand blockchain.
- */
-export interface BlockchainQueryConfig {
-    /** Algod server URL */
-    algodServer?: string;
-    /** Algod server port */
-    algodPort?: number;
-    /** Algod API token */
-    algodToken?: string;
-    /** Network to query (mainnet, testnet, localnet) */
-    network?: 'mainnet' | 'testnet' | 'localnet';
-    /** Custom algod client instance */
-    algodClient?: any;
-}
-/**
- * Interface for box storage data.
- * Represents the result of querying box storage from an application.
- */
-export interface BoxStorageData {
-    /** Base64url-encoded key */
-    key: string;
-    /** Decoded key as UTF-8 string */
-    decodedKey: string;
-    /** Raw value bytes as base64 */
-    value: string | null;
-    /** Decoded value as UTF-8 string (if valid UTF-8) */
-    decodedValue?: string;
-    /** Whether the box exists */
-    exists: boolean;
-    /** Error message if query failed */
-    error?: string;
-}
-/**
- * Interface for global storage data.
- * Represents the result of querying global state from an application.
- */
-export interface GlobalStorageData {
-    /** Base64url-encoded key */
-    key: string;
-    /** Decoded key as UTF-8 string */
-    decodedKey: string;
-    /** Raw value (bytes or uint) */
-    value: Uint8Array | bigint | null;
-    /** Value type (bytes or uint) */
-    valueType: 'bytes' | 'uint' | null;
-    /** Decoded value as UTF-8 string (if bytes and valid UTF-8) */
-    decodedValue?: string;
-    /** Whether the key exists */
-    exists: boolean;
-    /** Error message if query failed */
-    error?: string;
-}
-/**
- * Interface for local storage data.
- * Represents the result of querying local state from an application for a specific account.
- */
-export interface LocalStorageData {
-    /** Base64url-encoded key */
-    key: string;
-    /** Decoded key as UTF-8 string */
-    decodedKey: string;
-    /** Account address */
-    address: string;
-    /** Raw value (bytes or uint) */
-    value: Uint8Array | bigint | null;
-    /** Value type (bytes or uint) */
-    valueType: 'bytes' | 'uint' | null;
-    /** Decoded value as UTF-8 string (if bytes and valid UTF-8) */
-    decodedValue?: string;
-    /** Whether the key exists for this account */
-    exists: boolean;
-    /** Whether the account is opted into the app */
-    isOptedIn: boolean;
-    /** Error message if query failed */
-    error?: string;
-}
-/**
- * Interface for TEAL code data.
- * Represents the result of querying TEAL programs from an application.
- */
-export interface TealCodeData {
-    /** Approval program TEAL source code */
-    approvalProgram?: string;
-    /** Clear state program TEAL source code */
-    clearStateProgram?: string;
-    /** Approval program as base64-encoded bytes */
-    approvalProgramB64?: string;
-    /** Clear state program as base64-encoded bytes */
-    clearStateProgramB64?: string;
-    /** Error message if query failed */
-    error?: string;
-}
-/**
- * Interface for application query result.
- * Represents the complete result of querying application data from the blockchain.
- */
-export interface AppQueryResult {
-    /** Application ID that was queried */
-    appId: number;
-    /** Box storage results (if box parameters were requested) */
-    boxes?: BoxStorageData[];
-    /** Global storage results (if global parameters were requested) */
-    global?: GlobalStorageData[];
-    /** Local storage results (if local parameters were requested) */
-    local?: LocalStorageData[];
-    /** TEAL code results (if tealcode parameter was requested) */
-    tealCode?: TealCodeData;
-    /** Whether the application exists on the blockchain */
-    exists: boolean;
-    /** Overall query success status */
-    success: boolean;
-    /** Error message if query failed */
-    error?: string;
-}
-/**
- * Interface for asset parameter data.
- * Contains the actual parameter values retrieved from an asset.
- */
-export interface AssetParameterData {
-    /** Total supply of the asset */
-    total?: number;
-    /** Number of decimal places */
-    decimals?: number;
-    /** Default frozen status for new holdings */
-    frozen?: boolean;
-    /** Unit name/symbol of the asset */
-    unitname?: string;
-    /** Full name of the asset */
-    assetname?: string;
-    /** URL associated with the asset */
-    url?: string;
-    /** Metadata hash as base64-encoded string */
-    metadatahash?: string;
-    /** Manager address (can modify asset configuration) */
-    manager?: string;
-    /** Reserve address (receives unclaimed assets) */
-    reserve?: string;
-    /** Freeze address (can freeze/unfreeze asset holdings) */
-    freeze?: string;
-    /** Clawback address (can revoke asset holdings) */
-    clawback?: string;
-}
-/**
- * Interface for asset query result.
- * Represents the complete result of querying asset data from the blockchain.
- */
-export interface AssetQueryResult {
-    /** Asset ID that was queried */
-    assetId: number;
-    /** Asset parameter data that was retrieved */
-    parameters: AssetParameterData;
-    /** Whether the asset exists on the blockchain */
-    exists: boolean;
-    /** Overall query success status */
-    success: boolean;
-    /** Error message if query failed */
-    error?: string;
-}
+import { AlgorandUriType, AppQueryParams, AppQueryResult, AssetQueryParams, AssetQueryResult, ParsedAlgorandUri } from './types';
 /**
  * Error class for ARC-82 URI parsing errors.
  * Thrown when a URI cannot be parsed according to the ARC-82 specification.
@@ -321,18 +47,18 @@ export declare class Arc82QueryError extends Error {
  * @example
  * ```typescript
  * // Parse an ARC-82 URI
- * const parsed = Arc82Parser.parse('algorand://app/123?global=Z2xvYmFsX2tleQ%3D%3D');
+ * const parsed = Arc82.parse('algorand://app/123?global=Z2xvYmFsX2tleQ%3D%3D');
  *
  * // Build an ARC-82 URI
- * const uri = Arc82Parser.buildAppUri(123, {
+ * const uri = Arc82.buildAppUri(123, {
  *   global: ['Z2xvYmFsX2tleQ%3D%3D']
  * });
  *
  * // Query blockchain data
- * const result = await Arc82Parser.queryFromUri(uri, 'testnet');
+ * const result = await Arc82.queryFromUri(uri, 'testnet');
  * ```
  */
-export declare class Arc82Parser {
+export declare class Arc82 {
     /** The ARC-82 URI scheme */
     private static readonly SCHEME;
     /** Path prefix for application URIs */
@@ -348,7 +74,7 @@ export declare class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const parsed = Arc82Parser.parse('algorand://app/123?box=Ym94X2tleQ%3D%3D');
+     * const parsed = Arc82.parse('algorand://app/123?box=Ym94X2tleQ%3D%3D');
      * console.log(parsed.type); // AlgorandUriType.APPLICATION
      * console.log(parsed.id); // 123
      * console.log(parsed.appParams?.box); // ['Ym94X2tleQ%3D%3D']
@@ -402,11 +128,11 @@ export declare class Arc82Parser {
      * @example
      * ```typescript
      * // Simple application URI
-     * const uri1 = Arc82Parser.buildAppUri(123);
+     * const uri1 = Arc82.buildAppUri(123);
      * // "algorand://app/123"
      *
      * // Application URI with box query
-     * const uri2 = Arc82Parser.buildAppUri(123, {
+     * const uri2 = Arc82.buildAppUri(123, {
      *   box: ['Ym94X2tleQ%3D%3D']
      * });
      * // "algorand://app/123?box=Ym94X2tleQ%3D%3D"
@@ -424,11 +150,11 @@ export declare class Arc82Parser {
      * @example
      * ```typescript
      * // Simple asset URI
-     * const uri1 = Arc82Parser.buildAssetUri(456);
+     * const uri1 = Arc82.buildAssetUri(456);
      * // "algorand://asset/456"
      *
      * // Asset URI with multiple parameters
-     * const uri2 = Arc82Parser.buildAssetUri(456, {
+     * const uri2 = Arc82.buildAssetUri(456, {
      *   total: true,
      *   decimals: true,
      *   unitname: true
@@ -445,10 +171,10 @@ export declare class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const isValid1 = Arc82Parser.isValidArc82Uri('algorand://app/123');
+     * const isValid1 = Arc82.isValidArc82Uri('algorand://app/123');
      * // true
      *
-     * const isValid2 = Arc82Parser.isValidArc82Uri('http://example.com');
+     * const isValid2 = Arc82.isValidArc82Uri('http://example.com');
      * // false
      * ```
      */
@@ -461,10 +187,10 @@ export declare class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const id1 = Arc82Parser.extractId('algorand://app/123');
+     * const id1 = Arc82.extractId('algorand://app/123');
      * // 123
      *
-     * const id2 = Arc82Parser.extractId('invalid://uri');
+     * const id2 = Arc82.extractId('invalid://uri');
      * // null
      * ```
      */
@@ -477,13 +203,13 @@ export declare class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const type1 = Arc82Parser.extractType('algorand://app/123');
+     * const type1 = Arc82.extractType('algorand://app/123');
      * // AlgorandUriType.APPLICATION
      *
-     * const type2 = Arc82Parser.extractType('algorand://asset/456');
+     * const type2 = Arc82.extractType('algorand://asset/456');
      * // AlgorandUriType.ASSET
      *
-     * const type3 = Arc82Parser.extractType('invalid://uri');
+     * const type3 = Arc82.extractType('invalid://uri');
      * // null
      * ```
      */
@@ -497,7 +223,7 @@ export declare class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const decoded = Arc82Parser.decodeBase64Url('SGVsbG8gV29ybGQ');
+     * const decoded = Arc82.decodeBase64Url('SGVsbG8gV29ybGQ');
      * // "Hello World"
      * ```
      */
@@ -510,7 +236,7 @@ export declare class Arc82Parser {
      *
      * @example
      * ```typescript
-     * const encoded = Arc82Parser.encodeBase64Url('Hello World');
+     * const encoded = Arc82.encodeBase64Url('Hello World');
      * // "SGVsbG8gV29ybGQ"
      * ```
      */
@@ -529,8 +255,8 @@ export declare class Arc82Parser {
      * @example
      * ```typescript
      * const uri = 'algorand://app/123?global=Z2xvYmFsX2tleQ%3D%3D&box=Ym94X2tleQ%3D%3D';
-     * const parsed = Arc82Parser.parse(uri);
-     * const result = await Arc82Parser.queryApplication(parsed, 'testnet');
+     * const parsed = Arc82.parse(uri);
+     * const result = await Arc82.queryApplication(parsed, 'testnet');
      *
      * if (result.success) {
      *   console.log('Application exists:', result.exists);
@@ -555,8 +281,8 @@ export declare class Arc82Parser {
      * @example
      * ```typescript
      * const uri = 'algorand://asset/456?total&decimals&unitname';
-     * const parsed = Arc82Parser.parse(uri);
-     * const result = await Arc82Parser.queryAsset(parsed, 'testnet');
+     * const parsed = Arc82.parse(uri);
+     * const result = await Arc82.queryAsset(parsed, 'testnet');
      *
      * if (result.success && result.exists) {
      *   console.log('Total supply:', result.parameters.total);
@@ -582,13 +308,13 @@ export declare class Arc82Parser {
      * @example
      * ```typescript
      * // Query application data
-     * const appResult = await Arc82Parser.queryFromUri(
+     * const appResult = await Arc82.queryFromUri(
      *   'algorand://app/123?global=Z2xvYmFsX2tleQ%3D%3D',
      *   'testnet'
      * );
      *
      * // Query asset data
-     * const assetResult = await Arc82Parser.queryFromUri(
+     * const assetResult = await Arc82.queryFromUri(
      *   'algorand://asset/456?total&unitname',
      *   'testnet'
      * );
@@ -600,7 +326,7 @@ export declare class Arc82Parser {
  * Utility class providing helper functions for working with ARC-82 URIs.
  *
  * This class contains additional validation, example generation, and testing utilities
- * that complement the main Arc82Parser functionality.
+ * that complement the main Arc82 functionality.
  */
 export declare class Arc82Utils {
     /**

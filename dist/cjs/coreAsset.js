@@ -8,9 +8,6 @@ exports.CoreAsset = void 0;
 /* eslint-disable import/no-unresolved */
 const algosdk_1 = require("algosdk");
 const utils_1 = require("./utils");
-const arc3_1 = require("./arc3");
-const arc69_1 = require("./arc69");
-const arc19_1 = require("./arc19");
 /**
  * Base class for working with Algorand Standard Assets (ASAs)
  * Provides core functionality for interacting with assets on the Algorand blockchain
@@ -34,39 +31,7 @@ class CoreAsset {
      */
     static async fromId(id, network) {
         const assetParams = await this.fetchAssetParams(id, network);
-        if (arc3_1.Arc3.isArc3(assetParams.name || '', assetParams.url || '', id)) {
-            return await arc3_1.Arc3.fromAssetParams(id, assetParams, network);
-        }
-        else if (arc19_1.Arc19.isArc19(assetParams.url || '')) {
-            return await arc19_1.Arc19.fromAssetParams(id, assetParams, network);
-        }
-        else if (await arc69_1.Arc69.isArc69(assetParams.url || '', id, network)) {
-            return await arc69_1.Arc69.fromAssetParams(id, assetParams, network);
-        }
-        else {
-            return new CoreAsset(id, assetParams, network);
-        }
-    }
-    /**
-     * Checks if this asset is ARC-3 compliant
-     * @returns True if the asset follows ARC-3 standard
-     */
-    isArc3() {
-        return arc3_1.Arc3.isArc3(this.assetParams.name || '', this.assetParams.url || '', this.id);
-    }
-    /**
-     * Checks if this asset is ARC-19 compliant
-     * @returns True if the asset follows ARC-19 standard
-     */
-    isArc19() {
-        return arc19_1.Arc19.isArc19(this.assetParams.url || '');
-    }
-    /**
-     * Checks if this asset is ARC-69 compliant
-     * @returns A promise resolving to true if the asset follows ARC-69 standard
-     */
-    async isArc69() {
-        return await arc69_1.Arc69.isArc69(this.assetParams.url || '', this.id, this.network);
+        return new CoreAsset(id, assetParams, network);
     }
     /**
      * Fetches asset parameters from the Algorand blockchain

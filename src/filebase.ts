@@ -137,13 +137,14 @@ async function uploadToFilebaseNode({
       },
     };
   } catch (error) {
-    console.log(':ERROR', error);
+    console.error(`Error uploading file to Filebase: ${error}`);
     throw error;
   }
 }
 
 /**
  * Uploads a file to Filebase IPFS service (Browser version)
+ * Uses direct HTTP API to avoid stream compatibility issues
  * @param options - Upload configuration options
  * @returns Promise resolving to the Filebase API response with IPFS hash
  * @throws Error if upload fails
@@ -154,27 +155,95 @@ async function uploadToFilebaseBrowser({
   token,
 }: FilebaseUploadOptionsBrowser): Promise<FilebaseResponse> {
   try {
-    const client = new FilebaseClient({ token });
+    // Try the FilebaseClient first, with fallback to direct HTTP API
+    try {
+      const client = new FilebaseClient({ token });
+      const fileName = name || file.name;
+      const result = await client.storeBlob(file);
 
+      return {
+        cid: result,
+        name: fileName,
+        size: file.size,
+        metadata: {
+          uploadedAt: new Date().toISOString(),
+          environment: 'browser',
+          type: file.type,
+        },
+      };
+    } catch (clientError) {
+      // Fallback to direct HTTP API upload
+      return await uploadToFilebaseDirectAPI(file, token, name);
+    }
+  } catch (error) {
+    console.error(`Error uploading file to Filebase: ${error}`);
+    throw error;
+  }
+}
+
+/**
+ * Direct HTTP API upload to Filebase (fallback for browser compatibility)
+ * @param file - The File object to upload
+ * @param name - Optional name for the file
+ * @param token - Filebase API token
+ * @returns Promise resolving to FilebaseResponse
+ * @throws Error if HTTP upload fails
+ * @private
+ */
+async function uploadToFilebaseDirectAPI(
+  file: File,
+  token: string,
+  name?: string
+): Promise<FilebaseResponse> {
+  try {
+    // Create FormData for multipart upload
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Upload using fetch API
+    const response = await fetch('https://rpc.filebase.io', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
     const fileName = name || file.name;
 
-    // Upload to Filebase
-    const result = await client.storeBlob(file);
-
     return {
-      cid: result,
+      cid: result.Hash || result.cid,
       name: fileName,
       size: file.size,
       metadata: {
         uploadedAt: new Date().toISOString(),
-        environment: 'browser',
+        environment: 'browser-direct-api',
         type: file.type,
+        httpStatus: response.status,
       },
     };
   } catch (error) {
-    console.log(':ERROR', error);
+    console.error(`Error uploading JSON to Filebase: ${error}`);
     throw error;
   }
+}
+
+async function uploadJsonToFilebaseDirectAPI(
+  json: object,
+  token: string,
+  name?: string
+): Promise<FilebaseResponse> {
+  const jsonString = JSON.stringify(json);
+  const jsonBlob = new Blob([jsonString], {
+    type: 'application/json',
+  });
+
+  return await uploadToFilebaseDirectAPI(jsonBlob as File, token, name);
 }
 
 /**
@@ -188,11 +257,9 @@ async function uploadToFilebase(
   options: FilebaseUploadOptions
 ): Promise<FilebaseResponse> {
   if (isNodeOptions(options)) {
-    // Node.js environment - file is a string path
-    return uploadToFilebaseNode(options);
+    return await uploadToFilebaseNode(options);
   } else {
-    // Browser environment - file is a File object
-    return uploadToFilebaseBrowser(options);
+    return await uploadToFilebaseBrowser(options);
   }
 }
 
@@ -207,7 +274,7 @@ export interface FilebaseJsonUploadOptions {
   /**
    * Name for the JSON file in Filebase
    */
-  name: string;
+  name?: string;
   /**
    * Filebase API token for authentication
    */
@@ -216,9 +283,10 @@ export interface FilebaseJsonUploadOptions {
 
 /**
  * Uploads a JSON object to Filebase IPFS service
- * @param options - JSON upload configuration options
+ * Converts the JSON to a string and uploads as a file
+ * @param options - Upload configuration options
  * @returns Promise resolving to the Filebase API response with IPFS hash
- * @throws Error if upload fails
+ * @throws Error if upload fails or JSON serialization fails
  */
 async function uploadJsonToFilebase({
   json,
@@ -228,25 +296,31 @@ async function uploadJsonToFilebase({
   try {
     const client = new FilebaseClient({ token });
 
-    // Convert JSON to blob
+    // Convert JSON to string and create blob
     const jsonString = JSON.stringify(json);
-    const jsonBlob = new Blob([jsonString], { type: 'application/json' });
+    const jsonBlob = new Blob([jsonString], {
+      type: 'application/json',
+    });
 
     // Upload to Filebase
     const result = await client.storeBlob(jsonBlob);
 
     return {
       cid: result,
-      name: name.endsWith('.json') ? name : `${name}.json`,
+      name: name
+        ? name.endsWith('.json')
+          ? name
+          : `${name}.json`
+        : 'metadata.json',
       size: jsonBlob.size,
       metadata: {
         uploadedAt: new Date().toISOString(),
-        type: 'application/json',
-        contentType: 'json',
+        contentType: 'application/json',
+        originalJson: Object.keys(json).length,
       },
     };
   } catch (error) {
-    console.log(':ERROR', error);
+    console.error(`Error uploading JSON to Filebase: ${error}`);
     throw error;
   }
 }

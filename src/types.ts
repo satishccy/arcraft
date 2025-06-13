@@ -338,5 +338,6 @@ export {
   LocalStorageData,
   TealCodeData,
   AppQueryResult,
+  AssetParameterData,
   AssetQueryResult,
 };

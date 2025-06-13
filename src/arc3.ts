@@ -7,11 +7,10 @@ import { AssetParams } from 'algosdk/dist/types/client/v2/algod/models/types';
 import { CoreAsset } from './coreAsset';
 import { Network } from './types';
 import { IPFS_GATEWAY } from './const';
-import algosdk, { TransactionSigner } from 'algosdk';
+import algosdk, { AtomicTransactionComposer, TransactionSigner } from 'algosdk';
 import { IPFS } from './ipfs';
-import mime from 'mime-types';
-import crypto from 'crypto';
-import { getAlgodClient } from './utils';
+import { lookup as mimeTypeLookup, lookupFromFile } from './mimeUtils';
+import { getAlgodClient, calculateSHA256, UniversalBuffer } from './utils';
 import fs from 'fs';
 
 /**
@@ -26,6 +25,7 @@ class Arc3 extends CoreAsset {
    * Creates an instance of Arc3.
    * @param id - The asset ID
    * @param params - The asset parameters from the Algorand blockchain
+   * @param network - The Algorand network this asset exists on
    * @param metadata - The metadata associated with the asset
    */
   private constructor(
@@ -42,6 +42,7 @@ class Arc3 extends CoreAsset {
    * Fetches metadata from a given URL
    * @param url - The URL to fetch metadata from
    * @returns A promise resolving to the metadata object
+   * @throws Error if metadata cannot be fetched or parsed
    */
   private static async fetchMetadata(url: string): Promise<any> {
     try {
@@ -54,9 +55,9 @@ class Arc3 extends CoreAsset {
 
   /**
    * Resolves URLs, handling IPFS protocol and ID replacements
-   * @param url - The URL to resolve
+   * @param url - The URL to resolve (may contain {id} placeholder)
    * @param id - The asset ID to replace in the URL if needed
-   * @returns The resolved URL
+   * @returns The resolved URL with proper protocol
    */
   static resolveUrl(url: string, id: number): string {
     let resolvedUrl = url;
@@ -80,6 +81,7 @@ class Arc3 extends CoreAsset {
    * @param id - The asset ID to load
    * @param network - The Algorand network to use
    * @returns A promise resolving to an Arc3 instance
+   * @throws Error if the asset cannot be loaded
    */
   static async fromId(id: number, network: Network): Promise<Arc3> {
     const asset = await CoreAsset.fromId(id, network);
@@ -93,6 +95,13 @@ class Arc3 extends CoreAsset {
     return new Arc3(id, asset.assetParams, network, metadata);
   }
 
+  /**
+   * Creates an Arc3 instance from existing asset parameters
+   * @param id - The asset ID
+   * @param assetParams - The asset parameters from the blockchain
+   * @param network - The Algorand network to use
+   * @returns A promise resolving to an Arc3 instance
+   */
   static async fromAssetParams(
     id: number,
     assetParams: AssetParams,
@@ -110,6 +119,7 @@ class Arc3 extends CoreAsset {
 
   /**
    * Checks if the asset has a valid ARC-3 name
+   * @param name - The asset name to validate
    * @returns True if the asset name is ARC-3 compliant
    */
   static hasValidName(name: string): boolean {
@@ -126,6 +136,8 @@ class Arc3 extends CoreAsset {
 
   /**
    * Checks if the asset has a valid ARC-3 URL
+   * @param url - The asset URL to validate
+   * @param id - The asset ID for URL resolution
    * @returns True if the asset URL is ARC-3 compliant
    */
   static hasValidUrl(url: string, id: number): boolean {
@@ -141,6 +153,9 @@ class Arc3 extends CoreAsset {
 
   /**
    * Checks if the asset is ARC-3 compliant
+   * @param name - The asset name to check
+   * @param url - The asset URL to check
+   * @param id - The asset ID for URL resolution
    * @returns True if the asset is ARC-3 compliant
    */
   static isArc3(name: string, url: string, id: number): boolean {
@@ -167,11 +182,11 @@ class Arc3 extends CoreAsset {
   }
 
   /**
-   * Gets the image associated with the asset
-   * @returns The image object
+   * Gets the image URL associated with the asset
+   * @returns The resolved image URL or empty string if no image
    */
   getImageUrl(): string {
-    if (!this.metadata.image) {
+    if (!this.metadata || !this.metadata.image) {
       return '';
     }
     return Arc3.resolveUrl(this.metadata.image, this.id);
@@ -180,6 +195,7 @@ class Arc3 extends CoreAsset {
   /**
    * Gets the image as a base64 encoded string
    * @returns A promise resolving to the base64 encoded image
+   * @throws Error if no image is available or fetch fails
    */
   async getImageBase64(): Promise<string> {
     if (!this.metadata.image) {
@@ -189,14 +205,15 @@ class Arc3 extends CoreAsset {
     const imageResponse = await fetch(imageUrl);
     const imageBlob = await imageResponse.blob();
     const imageBuffer = await imageBlob.arrayBuffer();
-    const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+    const imageBase64 = UniversalBuffer.from(imageBuffer).toString('base64');
     return imageBase64;
   }
 
   /**
    * Creates a new ARC-3 compliant NFT on the Algorand blockchain
-   * @param options - The configuration options for the NFT
+   * @param options - The configuration options for creating the ARC-3 NFT
    * @returns A promise resolving to an object containing the transaction ID and asset ID
+   * @throws Error if creation fails
    */
   static async create({
     name,
@@ -254,7 +271,10 @@ class Arc3 extends CoreAsset {
       imageCid = await ipfs.upload(image.file, image.name);
     }
 
-    const mimeType = mime.lookup(image.name) || 'application/octet-stream';
+    const mimeType =
+      typeof image.file === 'string'
+        ? mimeTypeLookup(image.name)
+        : lookupFromFile(image.file);
 
     let blob: Blob;
     if (typeof image.file === 'string') {
@@ -284,39 +304,43 @@ class Arc3 extends CoreAsset {
     // Upload metadata to IPFS
     const metadataCid = await ipfs.uploadJson(metadata, 'metadata.json');
 
-    // Create the asset on the blockchain
+    // Create the asset on the blockchain using AtomicTransactionComposer
     const client = getAlgodClient(network);
+    const atc = new AtomicTransactionComposer();
     const sp = await client.getTransactionParams().do();
-    const nft_txn = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
-      sender: creator.address,
-      suggestedParams: sp,
-      defaultFrozen: defaultFrozen,
-      unitName: unitName,
-      assetName: name,
-      manager: manager,
-      reserve: reserve,
-      freeze: freeze,
-      clawback: clawback,
-      assetURL: `ipfs://${metadataCid}#arc3`,
-      total: total,
-      decimals: decimals,
+    
+    atc.addTransaction({
+      txn: algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
+        sender: creator.address,
+        suggestedParams: sp,
+        defaultFrozen: defaultFrozen,
+        unitName: unitName,
+        assetName: name,
+        manager: manager,
+        reserve: reserve,
+        freeze: freeze,
+        clawback: clawback,
+        assetURL: `ipfs://${metadataCid}#arc3`,
+        total: total,
+        decimals: decimals,
+      }),
+      signer: creator.signer,
     });
 
-    // Sign and send the transaction
-    const signed = await creator.signer([nft_txn], [0]);
-    const txid = await client.sendRawTransaction(signed[0]).do();
-    const result = await algosdk.waitForConfirmation(client, txid.txid, 3);
+    const result = await atc.submit(client);
+    const txnStatus = await algosdk.waitForConfirmation(client, result[0], 3);
 
     return {
-      transactionId: txid.txid,
-      assetId: Number(result.assetIndex || 0),
+      transactionId: result[0],
+      assetId: Number(txnStatus.assetIndex || 0),
     };
   }
 
   /**
-   * Calculates the SHA256 hash of a file's content
-   * @param blobContent - The file content as a Blob
-   * @returns A promise resolving to the hex-encoded hash
+   * Calculates SHA256 hash of blob content
+   * @param blobContent - The blob content to hash
+   * @returns Promise resolving to hex-encoded hash string
+   * @throws Error if no blob content provided
    * @private
    */
   private static async calculateSHA256(
@@ -326,10 +350,8 @@ class Arc3 extends CoreAsset {
       throw Error('No Blob found in calculateSHA256');
     }
     try {
-      var buffer = Buffer.from(await blobContent.arrayBuffer());
-      const hash = crypto.createHash('sha256');
-      hash.update(buffer);
-      return hash.digest('hex');
+      const buffer = await blobContent.arrayBuffer();
+      return await calculateSHA256(buffer);
     } catch (error: any) {
       throw error;
     }

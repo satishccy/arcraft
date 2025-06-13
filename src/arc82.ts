@@ -12,10 +12,11 @@
  */
 
 import {
-  base64UrlToBuffer,
-  base64UrlToUint8Array,
+  base64ToBuffer,
+  base64ToUint8Array,
   getAlgodClient,
-  uint8ArrayToBase64Url,
+  uint8ArrayToBase64,
+  UniversalBuffer,
 } from './utils';
 import { Network } from './types';
 import {
@@ -559,7 +560,7 @@ export class Arc82 {
     const base64 = padded.replace(/-/g, '+').replace(/_/g, '/');
 
     try {
-      return Buffer.from(base64, 'base64').toString('utf-8');
+      return UniversalBuffer.from(base64, 'base64').toString('utf-8');
     } catch (error) {
       throw new Arc82ParseError('Failed to decode base64url string');
     }
@@ -578,7 +579,7 @@ export class Arc82 {
    * ```
    */
   static encodeBase64Url(str: string): string {
-    const base64 = Buffer.from(str, 'utf-8').toString('base64');
+    const base64 = UniversalBuffer.from(str, 'utf-8').toString('base64');
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
@@ -655,11 +656,11 @@ export class Arc82 {
               error: undefined,
             };
             try {
-              const boxKeyBuffer = base64UrlToBuffer(boxKey);
+              const boxKeyBuffer = base64ToBuffer(this.decodeBase64Url(boxKey));
               const boxResponse = await algod
                 .getApplicationBoxByName(parsedUri.id, boxKeyBuffer)
                 .do();
-              boxData.value = uint8ArrayToBase64Url(boxResponse.value);
+              boxData.value = uint8ArrayToBase64(boxResponse.value);
               boxData.exists = true;
             } catch (error) {
               boxData.error =
@@ -677,7 +678,8 @@ export class Arc82 {
           for (const globalKey of parsedUri.appParams.global) {
             const availableGlobalState = globalState.find(
               (state: TealKeyValue) =>
-                state.key === base64UrlToUint8Array(globalKey)
+                this.encodeBase64Url(uint8ArrayToBase64(state.key)) ===
+                globalKey
             );
             if (availableGlobalState) {
               result.global.push({
@@ -691,9 +693,7 @@ export class Arc82 {
                   availableGlobalState.value.type === 1 ? 'bytes' : 'uint',
                 decodedValue:
                   availableGlobalState.value.type === 1
-                    ? this.decodeBase64Url(
-                        uint8ArrayToBase64Url(availableGlobalState.value.bytes)
-                      )
+                    ? new TextDecoder().decode(availableGlobalState.value.bytes)
                     : undefined,
                 exists: true,
                 error: undefined,
@@ -728,7 +728,8 @@ export class Arc82 {
             if (appLocalState && appLocalState.keyValue) {
               const availableLocalState = appLocalState.keyValue.find(
                 (state: TealKeyValue) =>
-                  state.key === base64UrlToUint8Array(localParam.key)
+                  this.encodeBase64Url(uint8ArrayToBase64(state.key)) ===
+                  localParam.key
               );
               if (availableLocalState) {
                 localState = {
@@ -743,9 +744,7 @@ export class Arc82 {
                     availableLocalState.value.type === 1 ? 'bytes' : 'uint',
                   decodedValue:
                     availableLocalState.value.type === 1
-                      ? this.decodeBase64Url(
-                          uint8ArrayToBase64Url(availableLocalState.value.bytes)
-                        )
+                      ? new TextDecoder().decode(availableLocalState.value.bytes)
                       : undefined,
                   exists: true,
                   isOptedIn: true,
@@ -773,10 +772,10 @@ export class Arc82 {
 
         if (parsedUri.appParams.tealcode) {
           result.tealCode = {
-            approvalProgramB64: uint8ArrayToBase64Url(
+            approvalProgramB64: uint8ArrayToBase64(
               appInfo.params.approvalProgram || new Uint8Array()
             ),
-            clearStateProgramB64: uint8ArrayToBase64Url(
+            clearStateProgramB64: uint8ArrayToBase64(
               appInfo.params.clearStateProgram || new Uint8Array()
             ),
             error: undefined,
@@ -874,7 +873,7 @@ export class Arc82 {
         }
         if (parsedUri.assetParams.metadatahash) {
           params.metadatahash = assetInfo.params.metadataHash
-            ? uint8ArrayToBase64Url(assetInfo.params.metadataHash)
+            ? uint8ArrayToBase64(assetInfo.params.metadataHash)
             : undefined;
         }
         if (parsedUri.assetParams.manager) {

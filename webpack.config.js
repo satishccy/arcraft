@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   mode: 'production',
@@ -17,14 +18,18 @@ module.exports = {
     // Add '.ts' as resolvable extensions
     extensions: ['.ts', '.js'],
     extensionAlias: { '.js': ['.ts', '.js'] },
+    alias: {
+      'process/browser': require.resolve('process/browser'),
+      'process': require.resolve('process/browser'),
+    },
     fallback: {
       fs: false,
       path: false,
-      crypto: false,
-      stream: false,
-      util: false,
-      buffer: false,
-      process: false,
+      crypto: false, // We use Web Crypto API in browsers
+      stream: require.resolve('stream-browserify'),
+      util: require.resolve('util'),
+      buffer: require.resolve('buffer'),
+      process: require.resolve('process/browser'),
     },
   },
   module: {
@@ -45,4 +50,14 @@ module.exports = {
   externals: {
     'form-data': 'FormData',
   },
+  plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+      process: 'process/browser',
+    }),
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+      global: 'globalThis',
+    }),
+  ],
 };

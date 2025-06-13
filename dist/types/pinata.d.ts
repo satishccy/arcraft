@@ -75,7 +75,7 @@ export interface PinataJsonUploadOptions {
     /**
      * Name for the JSON file in Pinata
      */
-    name: string;
+    name?: string;
     /**
      * Pinata API JWT token for authentication
      */

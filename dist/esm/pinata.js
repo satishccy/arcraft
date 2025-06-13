@@ -58,7 +58,7 @@ async function uploadToPinataNode({ file, name, token, }) {
         return res.data;
     }
     catch (error) {
-        console.log(':ERROR', error);
+        console.error(`Error uploading file to Pinata: ${error}`);
         throw error;
     }
 }
@@ -89,7 +89,7 @@ async function uploadToPinataBrowser({ file, name, token, }) {
         return res.data;
     }
     catch (error) {
-        console.log(':ERROR', error);
+        console.error(`Error uploading file to Pinata: ${error}`);
         throw error;
     }
 }
@@ -119,7 +119,7 @@ async function uploadJsonToPinata({ json, name, token, }) {
     try {
         const data = JSON.stringify({
             pinataContent: json,
-            pinataMetadata: { name: name },
+            pinataMetadata: { name: name || "metadata.json" },
         });
         const res = await axios.post('https://api.pinata.cloud/pinning/pinJSONToIPFS', data, {
             headers: {
@@ -130,7 +130,7 @@ async function uploadJsonToPinata({ json, name, token, }) {
         return res.data;
     }
     catch (error) {
-        console.log(':ERROR', error);
+        console.error(`Error uploading JSON to Pinata: ${error}`);
         throw error;
     }
 }

@@ -76,9 +76,6 @@ export class IPFS {
     if (this.provider === 'pinata' && this.config.provider === 'pinata') {
       if (typeof file === 'string') {
         // Node.js environment - file is a path
-        if (!fileName) {
-          throw new Error('fileName is required when uploading from file path');
-        }
         const result = await uploadToPinata({
           file,
           name: fileName,
@@ -100,9 +97,6 @@ export class IPFS {
     ) {
       if (typeof file === 'string') {
         // Node.js environment - file is a path
-        if (!fileName) {
-          throw new Error('fileName is required when uploading from file path');
-        }
         const result = await uploadToFilebase({
           file,
           name: fileName,
@@ -133,7 +127,7 @@ export class IPFS {
    * @returns Promise resolving to the IPFS content identifier (CID)
    * @throws Error if provider is not supported or upload fails
    */
-  async uploadJson(json: object, fileName: string): Promise<string> {
+  async uploadJson(json: object, fileName?: string): Promise<string> {
     if (this.provider === 'pinata' && this.config.provider === 'pinata') {
       const result = await uploadJsonToPinata({
         json,
