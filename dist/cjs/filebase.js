@@ -116,7 +116,7 @@ async function uploadToFilebaseDirectAPI(file, token, name) {
         const formData = new FormData();
         formData.append('file', file);
         // Upload using fetch API
-        const response = await fetch('https://rpc.filebase.io/api/v0/add', {
+        const response = await fetch('https://rpc.filebase.io', {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -144,6 +144,13 @@ async function uploadToFilebaseDirectAPI(file, token, name) {
         console.error(`Error uploading JSON to Filebase: ${error}`);
         throw error;
     }
+}
+async function uploadJsonToFilebaseDirectAPI(json, token, name) {
+    const jsonString = JSON.stringify(json);
+    const jsonBlob = new Blob([jsonString], {
+        type: 'application/json',
+    });
+    return await uploadToFilebaseDirectAPI(jsonBlob, token, name);
 }
 /**
  * Uploads a file to Filebase IPFS service (Universal function)
