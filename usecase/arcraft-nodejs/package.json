@@ -1,0 +1,22 @@
+{
+  "name": "arcraft-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "algosdk": "^3.3.1",
+    "arcraft": "link:../../../AppData/Local/pnpm/global/5/node_modules/arcraft",
+    "dotenv": "^16.5.0"
+  }
+}
