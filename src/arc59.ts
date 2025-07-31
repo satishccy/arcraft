@@ -27,7 +27,7 @@ type SenderType = {
     grandTotal: number;
     csv: string;
   };
-  
+
 export class Arc59 {
   createArc59GroupTxns = async (
     txn: Transaction[],
@@ -239,5 +239,78 @@ export class Arc59 {
     console.log('Grand Total: ', txnInfo.grandTotal);
     txnInfo.logDataArray = logDataArray;
     return txnInfo;
+  };
+
+  getAssetsInAssetInbox = async (
+    receiver: string,
+    algodClient: Algodv2,
+    activeNetwork: NetworkId
+  ): Promise<{ assetId: number; amount: number; type: string }[]> => {
+    try {
+      const appClient = new Arc59Client(
+        {
+          resolveBy: "id",
+          id: activeNetwork === "mainnet" ? 2449590623 : 643020148,
+        },
+        algodClient
+      );
+  
+      const simSender = {
+        addr: receiver,
+        signer: algosdk.makeEmptyTransactionSigner(),
+      };
+      const simParams = {
+        allowEmptySignatures: true,
+        allowUnnamedResources: true,
+        fixSigners: true,
+      };
+  
+      const inboxAddress = (
+        await appClient
+          .compose()
+          .arc59GetInbox({ receiver: receiver }, { sender: simSender })
+          .simulate(simParams)
+      ).returns[0];
+  
+      if (inboxAddress !== ALGORAND_ZERO_ADDRESS) {
+        console.log(inboxAddress);
+  
+        const idx = getIndexerURL(activeNetwork);
+        const url = `${idx}/v2/accounts/${inboxAddress}/assets`;
+  
+        let resp = await axios.get(url);
+        let finalAssets = resp.data.assets;
+        while (resp.data["next-token"]) {
+          const next = resp.data["next-token"];
+          const url = `${idx}/v2/accounts/${inboxAddress}/assets?next=${next}`;
+          resp = await axios.get(url);
+          finalAssets = finalAssets.concat(resp.data.assets);
+        }
+  
+        const assets = [];
+  
+        for (let i = 0; i < finalAssets.length; i++) {
+          const asset = finalAssets[i];
+          if (
+            asset["is-frozen"] == false &&
+            asset["deleted"] == false &&
+            asset.amount > 0
+          ) {
+            assets.push({
+              assetId: asset["asset-id"],
+              amount: asset.amount,
+              type: "inbox",
+            });
+          }
+        }
+  
+        return assets;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
   };
 }
