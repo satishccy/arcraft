@@ -1,5 +1,33 @@
-import { Algodv2, NetworkId, SenderType, Transaction, Arc59Client, LogDataType, TxnInfoType } from 'algosdk';
+import { Algodv2, Transaction, AtomicTransactionComposer } from 'algosdk';
 
+type SenderType = {
+    addr: string;
+    signer: (
+      txnGroup: Transaction[],
+      indexesToSign: number[]
+    ) => Promise<Uint8Array[]>;
+  };
+  
+  export type LogDataType = {
+    account: string;
+    innerTxns: number;
+    mbr: number;
+    routerOptedIn: boolean;
+    routerOptedInCost: number;
+    receiverOptedIn: boolean;
+    receiverAlgoNeededForClaim: number;
+    txnFees: number;
+    totalAmount: number;
+    txnID: string;
+  };
+  
+  export type TxnInfoType = {
+    atomicTxns: AtomicTransactionComposer[];
+    logDataArray: LogDataType[];
+    grandTotal: number;
+    csv: string;
+  };
+  
 export class Arc59 {
   createArc59GroupTxns = async (
     txn: Transaction[],
