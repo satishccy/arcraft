@@ -1,5 +1,60 @@
 
+function findFormat(url: string) {
+    if (!url) {
+      return "Token";
+    }
+    if (url.includes("template-ipfs")) {
+      return "ARC19";
+    } else if (url.includes("#arc3")) {
+      return "ARC3";
+    } else if (url.includes("ipfs://") || url.includes("ipfs/")) {
+      return "ARC69";
+    } else {
+      return "Token";
+    }
+  }
 
+  export function getIndexerURL(activeNetwork: NetworkId) {
+    if (activeNetwork === NetworkId.MAINNET) {
+      return MAINNET_ALGONODE_INDEXER;
+    } else {
+      return TESTNET_ALGONODE_INDEXER;
+    }
+  }
+
+  function getARC19AssetMetadataData(url: string, reserve: string) {
+    try {
+      const chunks = url.split("://");
+      if (chunks[0] === "template-ipfs" && chunks[1].startsWith("{ipfscid:")) {
+        const cidComponents = chunks[1].split(":");
+        const cidVersion = cidComponents[1];
+        const cidCodec = cidComponents[2];
+        let cidCodecCode;
+        if (cidCodec === "raw") {
+          cidCodecCode = 0x55;
+        } else if (cidCodec === "dag-pb") {
+          cidCodecCode = 0x70;
+        }
+        if (!cidCodecCode) throw Error("Invalid cidCodec!");
+        const addr = decodeAddress(reserve);
+        const mhdigest = digest.create(mfsha2.sha256.code, addr.publicKey);
+        if (cidVersion === "1") {
+          const cid = CID.createV1(cidCodecCode, mhdigest);
+          const response = await axios.get(`${IPFS_ENDPOINT}${cid}`);
+          return response.data;
+        } else {
+          const cid = CID.createV0(mhdigest);
+          const response = await axios.get(`${IPFS_ENDPOINT}${cid}`);
+          return response.data;
+        }
+      }
+      return {};
+    } catch (err) {
+      console.error(err);
+      return {};
+    }
+  }
+  
 
 export class Arc62 {
 
