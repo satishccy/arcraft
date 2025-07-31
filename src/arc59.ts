@@ -313,4 +313,89 @@ export class Arc59 {
       throw e;
     }
   };
+
+  generateARC59ClaimTxns = async (
+    assetId: bigint,
+    claimer: string,
+    algodClient: Algodv2,
+    activeNetwork: NetworkId
+  ) => {
+    const algorand = algokit.AlgorandClient.fromClients({ algod: algodClient });
+  
+    // Check if the claimer has opted in to the asset
+    let claimerOptedIn = false;
+    try {
+      await algorand.asset.getAccountInformation(claimer, assetId);
+      claimerOptedIn = true;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_: any) {
+      // Do nothing
+    }
+  
+    const simSender = {
+      addr: claimer,
+      signer: algosdk.makeEmptyTransactionSigner(),
+    };
+  
+    const simParams = {
+      allowEmptySignatures: true,
+      allowUnnamedResources: true,
+      fixSigners: true,
+    };
+  
+    const appClient = new Arc59Client(
+      {
+        sender: simSender,
+        resolveBy: "id",
+        id: activeNetwork === "mainnet" ? 2449590623 : 643020148,
+      },
+      algodClient
+    );
+  
+    const inboxAddress = (
+      await appClient
+        .compose()
+        .arc59GetInbox({ receiver: claimer }, { sender: simSender })
+        .simulate(simParams)
+    ).returns[0];
+  
+    const composer = appClient.compose();
+  
+    const totalTxns = 3;
+  
+    // If the claimer hasn't already opted in, add a transaction to do so
+    if (!claimerOptedIn) {
+      composer.addTransaction(
+        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          from: claimer,
+          to: claimer,
+          assetIndex: Number(assetId),
+          amount: 0,
+          suggestedParams: await algodClient.getTransactionParams().do(),
+          note: new TextEncoder().encode(
+            "via wen.tools - free tools for creators and collectors | " +
+              Math.random().toString(36).substring(2)
+          ),
+        })
+      );
+    }
+  
+    composer.arc59Claim(
+      { asa: assetId },
+      {
+        note: new TextEncoder().encode(
+          "via wen.tools - free tools for creators and collectors | " +
+            Math.random().toString(36).substring(2)
+        ),
+        boxes: [algosdk.decodeAddress(claimer).publicKey],
+        accounts: [claimer, inboxAddress],
+        assets: [Number(assetId)],
+        sendParams: { fee: algokit.microAlgos(1000 * totalTxns) },
+      }
+    );
+  
+    const atc = await composer.atc();
+  
+    return getTxnGroupFromATC(atc);
+  };
 }
