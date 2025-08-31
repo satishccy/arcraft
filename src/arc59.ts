@@ -29,6 +29,12 @@ type SenderType = {
   };
 
 export class Arc59 {
+  private log(message: string, ...args: unknown[]) {
+    if (this.debugMode) {
+      // eslint-disable-next-line no-console
+      console.debug(`[Arc59] ${message}`, ...args);
+    }
+  }
   createArc59GroupTxns = async (
     txn: Transaction[],
     sender: SenderType,
@@ -36,6 +42,7 @@ export class Arc59 {
     algodClient: Algodv2,
     activeNetwork: NetworkId
   ) => {
+    this.log('createArc59GroupTxns called', { activeAddress, activeNetwork, count: txn?.length });
     const txnInfo: TxnInfoType = {
       atomicTxns: [],
       logDataArray: [],
@@ -246,6 +253,7 @@ export class Arc59 {
     algodClient: Algodv2,
     activeNetwork: NetworkId
   ): Promise<{ assetId: number; amount: number; type: string }[]> => {
+    this.log('getAssetsInAssetInbox called', { receiver, activeNetwork });
     try {
       const appClient = new Arc59Client(
         {
@@ -320,6 +328,7 @@ export class Arc59 {
     algodClient: Algodv2,
     activeNetwork: NetworkId
   ) => {
+    this.log('generateARC59ClaimTxns called', { assetId: Number(assetId), claimer, activeNetwork });
     const algorand = algokit.AlgorandClient.fromClients({ algod: algodClient });
   
     // Check if the claimer has opted in to the asset
