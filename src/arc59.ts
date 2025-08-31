@@ -29,6 +29,9 @@ type SenderType = {
   };
 
 export class Arc59 {
+  private getAppId(activeNetwork: NetworkId): number {
+    return activeNetwork === 'mainnet' ? 2449590623 : 643020148;
+  }
   private log(message: string, ...args: unknown[]) {
     if (this.debugMode) {
       // eslint-disable-next-line no-console
@@ -52,7 +55,7 @@ export class Arc59 {
 
     // const atomicTxns: algosdk.AtomicTransactionComposer[] = [];
     const logDataArray: LogDataType[] = [];
-    const appId = activeNetwork === 'mainnet' ? 2449590623 : 643020148;
+    const appId = this.getAppId(activeNetwork);
     const suggestedParams = await algodClient.getTransactionParams().do();
 
     try {
@@ -258,7 +261,7 @@ export class Arc59 {
       const appClient = new Arc59Client(
         {
           resolveBy: "id",
-          id: activeNetwork === "mainnet" ? 2449590623 : 643020148,
+          id: this.getAppId(activeNetwork),
         },
         algodClient
       );
@@ -356,7 +359,7 @@ export class Arc59 {
       {
         sender: simSender,
         resolveBy: "id",
-        id: activeNetwork === "mainnet" ? 2449590623 : 643020148,
+        id: this.getAppId(activeNetwork),
       },
       algodClient
     );
