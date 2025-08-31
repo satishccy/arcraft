@@ -398,4 +398,10 @@ export class Arc59 {
   
     return getTxnGroupFromATC(atc);
   };
+
+  private debugMode = false;
+
+  setDebugMode(enabled: boolean) {
+    this.debugMode = enabled;
+  }
 }
