@@ -18,6 +18,7 @@ View the documentation [here](https://satishccy.github.io/arcraft/).
 - [Examples](#-examples)
 - [Requirements](#-requirements)
 - [API Documentation](#-api-documentation)
+- [Development](#-development)
 - [Contributing](#-contributing)
 - [License](#-license)
 - [Links](#-links)
@@ -725,6 +726,27 @@ Comprehensive error handling with custom error classes:
 - **`Arc82ParseError`**: Thrown when ARC-82 URIs cannot be parsed
 - **`Arc82QueryError`**: Thrown when blockchain queries fail
 - Standard JavaScript errors for network and validation issues
+
+## 🛠️ Development
+
+For local development:
+
+```bash
+# Install deps
+npm install
+
+# Build the library bundles
+npm run build
+
+# Lint and format
+npm run lint:fix
+npm run format
+
+# Generate docs (optional)
+npm run docs
+```
+
+See `CONTRIBUTING.md` for full details and PR guidelines. Example apps are in `usecase/`.
 
 ## 🤝 Contributing
 
