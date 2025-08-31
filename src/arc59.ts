@@ -332,6 +332,12 @@ export class Arc59 {
     activeNetwork: NetworkId
   ) => {
     this.log('generateARC59ClaimTxns called', { assetId: Number(assetId), claimer, activeNetwork });
+    if (!claimer || typeof claimer !== 'string') {
+      throw new Error('Invalid claimer address');
+    }
+    if (typeof assetId !== 'bigint' || assetId <= 0n) {
+      throw new Error('Invalid assetId');
+    }
     const algorand = algokit.AlgorandClient.fromClients({ algod: algodClient });
   
     // Check if the claimer has opted in to the asset
