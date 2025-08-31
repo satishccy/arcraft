@@ -32,6 +32,14 @@ export class Arc59 {
   private getAppId(activeNetwork: NetworkId): number {
     return activeNetwork === 'mainnet' ? 2449590623 : 643020148;
   }
+  private computeTotalAmount(log: LogDataType): number {
+    // Prefer explicit totalAmount if present, otherwise recompute from parts
+    if (typeof log.totalAmount === 'number') return log.totalAmount;
+    const parts = [log.txnFees, log.innerTxns, log.mbr, log.receiverAlgoNeededForClaim].filter(
+      (v) => typeof v === 'number'
+    ) as number[];
+    return parts.reduce((a, b) => a + b, 0);
+  }
   private log(message: string, ...args: unknown[]) {
     if (this.debugMode) {
       // eslint-disable-next-line no-console
@@ -243,7 +251,7 @@ export class Arc59 {
     // Create CSV file for txn logs
     txnInfo.csv = await convertToCSV(logDataArray);
     txnInfo.grandTotal = logDataArray
-      .map((logData) => logData.totalAmount)
+      .map((logData) => this.computeTotalAmount(logData))
       .reduce((a, b) => a + b, 0);
 
     console.log('Grand Total: ', txnInfo.grandTotal);
