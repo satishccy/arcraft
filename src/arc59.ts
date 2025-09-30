@@ -427,6 +427,14 @@ export class Arc59 {
     return getTxnGroupFromATC(atc);
   };
 
+  isInboxAvailable = async (
+    receiver: string,
+    algodClient: Algodv2,
+    activeNetwork: NetworkId
+  ) => {
+    return await this.getAssetsInAssetInbox(receiver, algodClient, activeNetwork).length > 0;
+  };
+
   private debugMode = false;
 
   setDebugMode(enabled: boolean) {
