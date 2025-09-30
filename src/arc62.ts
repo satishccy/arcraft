@@ -1,15 +1,14 @@
 import algosdk from 'algosdk';
-import { NetworkId } from './types';
+import { NetworkId, Network } from './types';
 import { MAINNET_ALGONODE_INDEXER, TESTNET_ALGONODE_INDEXER } from './const';
 import { CID } from 'multiformats/cid';
 import * as digest from 'multiformats/hashes/digest';
 import { decodeAddress } from 'algosdk/dist/types/utils/address';
 import { mfsha2 } from 'multiformats/hashes/sha2';
 import axios from 'axios';
-import { Network } from './types';
 
 
-function findFormat(url: string) {
+async function findFormat(url: string) {
     if (!url) {
       return "Token";
     }
@@ -24,7 +23,7 @@ function findFormat(url: string) {
     }
   }
 
-  export function getIndexerURL(activeNetwork: NetworkId) {
+  export async function getIndexerURL(activeNetwork: NetworkId) {
     if (activeNetwork === NetworkId.MAINNET) {
       return MAINNET_ALGONODE_INDEXER;
     } else {
@@ -32,7 +31,7 @@ function findFormat(url: string) {
     }
   }
 
-  function getARC19AssetMetadataData(url: string, reserve: string) {
+  async function getARC19AssetMetadataData(url: string, reserve: string) {
     try {
       const chunks = url.split("://");
       if (chunks[0] === "template-ipfs" && chunks[1].startsWith("{ipfscid:")) {
