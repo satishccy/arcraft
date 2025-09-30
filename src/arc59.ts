@@ -435,6 +435,35 @@ export class Arc59 {
     return await this.getAssetsInAssetInbox(receiver, algodClient, activeNetwork).length > 0;
   };
 
+  getInboxAddress = async (
+    receiver: string,
+    algodClient: Algodv2,
+    activeNetwork: NetworkId
+  ) => {
+    this.log('getInboxAddress called', { receiver, activeNetwork });
+    try {
+      const appClient = new Arc59Client(
+        {
+          resolveBy: "id",
+          id: this.getAppId(activeNetwork),
+        },
+        algodClient
+      );
+      const inboxAddress = (
+        await appClient
+          .compose()
+          .arc59GetInbox({ receiver: receiver }, { sender: simSender })
+          .simulate(simParams)
+      ).returns[0];
+      return inboxAddress;
+    }
+    catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+  
+
   private debugMode = false;
 
   setDebugMode(enabled: boolean) {
