@@ -449,6 +449,15 @@ export class Arc59 {
         },
         algodClient
       );
+      const simSender = {
+        addr: receiver,
+        signer: algosdk.makeEmptyTransactionSigner(),
+      };
+      const simParams = {
+        allowEmptySignatures: true,
+        allowUnnamedResources: true,
+        fixSigners: true,
+      };
       const inboxAddress = (
         await appClient
           .compose()
