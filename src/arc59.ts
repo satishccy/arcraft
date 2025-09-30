@@ -1,4 +1,6 @@
 import { Algodv2, Transaction, AtomicTransactionComposer } from 'algosdk';
+import algosdk from 'algosdk';
+type NetworkId = 'mainnet' | 'testnet';
 
 type SenderType = {
     addr: string;
