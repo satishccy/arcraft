@@ -248,7 +248,7 @@ export class Arc69 extends CoreAsset {
             mime_type: mimeType,
             properties: properties,
         };
-        console.log(freeze, reserve, clawback, "metadata");
+        console.log(freeze, reserve, clawback, 'metadata');
         const client = getAlgodClient(network);
         const atc = new AtomicTransactionComposer();
         let sp = await client.getTransactionParams().do();

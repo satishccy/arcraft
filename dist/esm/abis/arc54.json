@@ -1,0 +1,30 @@
+{
+    "name": "ARC54",
+    "desc": "Standardized application for burning ASAs",
+    "methods": [
+        {
+            "name": "arc54_optIntoASA",
+            "args": [
+                {
+                    "name": "asa",
+                    "type": "asset",
+                    "desc": "The asset to which the contract will opt in"
+                }
+            ],
+            "desc": "A method to opt the contract into an ASA",
+            "returns": {
+                "type": "void",
+                "desc": ""
+            }
+        },
+        {
+            "name": "createApplication",
+            "desc": "",
+            "returns": {
+                "type": "void",
+                "desc": ""
+            },
+            "args": []
+        }
+    ]
+}

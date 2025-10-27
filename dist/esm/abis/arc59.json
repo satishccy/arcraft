@@ -10,9 +10,7 @@
                 "type": "void"
             },
             "actions": {
-                "create": [
-                    "NoOp"
-                ],
+                "create": ["NoOp"],
                 "call": []
             }
         },
@@ -31,9 +29,7 @@
             },
             "actions": {
                 "create": [],
-                "call": [
-                    "NoOp"
-                ]
+                "call": ["NoOp"]
             }
         },
         {
@@ -52,9 +48,7 @@
             },
             "actions": {
                 "create": [],
-                "call": [
-                    "NoOp"
-                ]
+                "call": ["NoOp"]
             }
         },
         {
@@ -78,9 +72,7 @@
             },
             "actions": {
                 "create": [],
-                "call": [
-                    "NoOp"
-                ]
+                "call": ["NoOp"]
             }
         },
         {
@@ -109,9 +101,7 @@
             },
             "actions": {
                 "create": [],
-                "call": [
-                    "NoOp"
-                ]
+                "call": ["NoOp"]
             }
         },
         {
@@ -129,9 +119,7 @@
             },
             "actions": {
                 "create": [],
-                "call": [
-                    "NoOp"
-                ]
+                "call": ["NoOp"]
             }
         },
         {
@@ -149,9 +137,7 @@
             },
             "actions": {
                 "create": [],
-                "call": [
-                    "NoOp"
-                ]
+                "call": ["NoOp"]
             }
         },
         {
@@ -170,9 +156,7 @@
             },
             "actions": {
                 "create": [],
-                "call": [
-                    "NoOp"
-                ]
+                "call": ["NoOp"]
             }
         },
         {
@@ -184,16 +168,11 @@
             },
             "actions": {
                 "create": [],
-                "call": [
-                    "NoOp"
-                ]
+                "call": ["NoOp"]
             }
         }
     ],
-    "arcs": [
-        4,
-        56
-    ],
+    "arcs": [4, 56],
     "structs": {
         "SendAssetInfo": [
             {

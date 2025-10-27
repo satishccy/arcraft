@@ -119,7 +119,7 @@ async function uploadJsonToPinata({ json, name, token, }) {
     try {
         const data = JSON.stringify({
             pinataContent: json,
-            pinataMetadata: { name: name || "metadata.json" },
+            pinataMetadata: { name: name || 'metadata.json' },
         });
         const res = await axios.post('https://api.pinata.cloud/pinning/pinJSONToIPFS', data, {
             headers: {

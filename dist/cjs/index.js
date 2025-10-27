@@ -21,7 +21,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Arc82QueryError = exports.Arc82ParseError = exports.Arc82Utils = exports.Arc82 = exports.AssetFactory = exports.Arc59 = exports.Arc69 = exports.Arc19 = exports.Arc3 = exports.CoreAsset = void 0;
+exports.Arc82QueryError = exports.Arc82ParseError = exports.Arc82Utils = exports.Arc82 = exports.AssetFactory = exports.Arc54 = exports.Arc59 = exports.Arc69 = exports.Arc19 = exports.Arc3 = exports.CoreAsset = void 0;
 // Export base classes and utilities first (no dependencies)
 __exportStar(require("./types"), exports);
 __exportStar(require("./utils"), exports);
@@ -42,6 +42,8 @@ var arc69_1 = require("./arc69");
 Object.defineProperty(exports, "Arc69", { enumerable: true, get: function () { return arc69_1.Arc69; } });
 var arc59_1 = require("./arc59");
 Object.defineProperty(exports, "Arc59", { enumerable: true, get: function () { return arc59_1.Arc59; } });
+var arc54_1 = require("./arc54");
+Object.defineProperty(exports, "Arc54", { enumerable: true, get: function () { return arc54_1.Arc54; } });
 // Export AssetFactory (depends on all ARC classes)
 var assetFactory_1 = require("./assetFactory");
 Object.defineProperty(exports, "AssetFactory", { enumerable: true, get: function () { return assetFactory_1.AssetFactory; } });
