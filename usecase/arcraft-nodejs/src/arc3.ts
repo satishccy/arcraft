@@ -1,30 +1,30 @@
-import { Arc3, IPFS } from "arcraft";
-import algosdk, { makeBasicAccountTransactionSigner } from "algosdk";
-import path from "path";
-import { PINATA_JWT, MNEMONIC } from "./config";
+import { Arc3, IPFS } from 'arcraft';
+import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
+import path from 'path';
+import { PINATA_JWT, MNEMONIC } from './config';
 
 async function main() {
-  const ipfs = new IPFS("pinata", {
-    provider: "pinata",
+  const ipfs = new IPFS('pinata', {
+    provider: 'pinata',
     jwt: PINATA_JWT,
   });
 
   const account = algosdk.mnemonicToSecretKey(MNEMONIC);
 
   const arc3 = await Arc3.create({
-    name: "Cool NFT",
-    unitName: "CNFT",
+    name: 'Cool NFT',
+    unitName: 'CNFT',
     creator: {
       address: account.addr.toString(),
       signer: makeBasicAccountTransactionSigner(account), // Wallet Signer - can use transactionSigner instead
     },
     ipfs, // IPFS Instance
     image: {
-      file: path.resolve(__dirname, "./images/juan.webp"), // Pass File Object in frontend
-      name: "juan.webp",
+      file: path.resolve(__dirname, './images/juan.webp'), // Pass File Object in frontend
+      name: 'juan.webp',
     },
-    properties: { from: "arcraft" },
-    network: "testnet",
+    properties: { from: 'arcraft' },
+    network: 'testnet',
     // ... can add more asset fields here (total,decimals,freeze,reserve,clawback,manager,defaultFrozen)
   });
 
@@ -32,7 +32,7 @@ async function main() {
     `Created ARC3 NFT:\nId: ${arc3.assetId}\nTransaction ID: ${arc3.transactionId}\n\n`
   );
 
-  const existingAsset = await Arc3.fromId(arc3.assetId, "testnet"); // Get existing asset
+  const existingAsset = await Arc3.fromId(arc3.assetId, 'testnet'); // Get existing asset
   const metadata = existingAsset.getMetadata(); // Get metadata
   console.log(`Metadata: ${JSON.stringify(metadata)}\n`);
   const resolvedImageUrl = existingAsset.getImageUrl(); // Get image URL

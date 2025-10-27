@@ -779,7 +779,7 @@ When contributing, please ensure all code is properly documented:
 
 All public functions, classes, and interfaces must have:
 
-```typescript
+````typescript
 /**
  * Brief description of what the function does
  * @param paramName - Description of the parameter
@@ -792,7 +792,7 @@ All public functions, classes, and interfaces must have:
  * const result = await myFunction('example');
  * ```
  */
-```
+````
 
 #### Documentation Guidelines
 

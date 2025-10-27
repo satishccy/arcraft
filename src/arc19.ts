@@ -390,7 +390,12 @@ export class Arc19 extends CoreAsset {
         : lookupFromFile(image.file);
     let blob: Blob;
     if (typeof image.file === 'string') {
-      blob = new Blob([await fs.promises.readFile(image.file)], {
+      const buffer = await fs.promises.readFile(image.file);
+      const arrayBuffer = buffer.buffer.slice(
+        buffer.byteOffset,
+        buffer.byteOffset + buffer.byteLength
+      ) as ArrayBuffer;
+      blob = new Blob([arrayBuffer], {
         type: mimeType,
       });
     } else {
@@ -513,7 +518,12 @@ export class Arc19 extends CoreAsset {
           : lookupFromFile(image.file);
       let blob: Blob;
       if (typeof image.file === 'string') {
-        blob = new Blob([await fs.promises.readFile(image.file)], {
+        const buffer = await fs.promises.readFile(image.file);
+        const arrayBuffer = buffer.buffer.slice(
+          buffer.byteOffset,
+          buffer.byteOffset + buffer.byteLength
+        ) as ArrayBuffer;
+        blob = new Blob([arrayBuffer], {
           type: mimeType,
         });
       } else {
@@ -643,9 +653,7 @@ export class Arc19 extends CoreAsset {
               assets_txns.transactions[i].assetConfigTransaction?.params
                 ?.reserve || ''
             );
-            var metadata_res: any = await fetch(
-              metadata_url
-            );
+            var metadata_res: any = await fetch(metadata_url);
             var metadata = await metadata_res.json();
             var m: Record<string, any> = {};
             m[round.toString()] = metadata;

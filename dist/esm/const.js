@@ -2,6 +2,7 @@
  * Constants used throughout the library
  * @module const
  */
+import algosdk from 'algosdk';
 /**
  * Network configurations for different Algorand networks
  * Each configuration includes connection details for Algod and Indexer services
@@ -51,5 +52,20 @@ const networks = {
  * Default IPFS gateway URL used for resolving IPFS content
  */
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
-export { networks, IPFS_GATEWAY };
+/**
+ * Read account address which is funded on all networks (except localnet) for simulation
+ */
+const READ_ACCOUNT = 'A7NMWS3NT3IUDMLVO26ULGXGIIOUQ3ND2TXSER6EBGRZNOBOUIQXHIBGDE';
+/**
+ * Simulate request for simulation of transactions
+ */
+const simulateRequest = new algosdk.modelsv2.SimulateRequest({
+    allowEmptySignatures: true,
+    allowMoreLogging: true,
+    allowUnnamedResources: true,
+    fixSigners: true,
+    extraOpcodeBudget: 320000,
+    txnGroups: [],
+});
+export { networks, IPFS_GATEWAY, READ_ACCOUNT, simulateRequest };
 //# sourceMappingURL=const.js.map

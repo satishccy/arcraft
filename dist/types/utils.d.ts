@@ -2,7 +2,7 @@
  * Utility functions for working with Algorand clients
  * @module utils
  */
-import { Algodv2, Indexer } from 'algosdk';
+import algosdk from 'algosdk';
 import { Network } from './types';
 import { Buffer } from 'buffer';
 /**
@@ -14,13 +14,13 @@ declare const UniversalBuffer: BufferConstructor;
  * @param network - The network to connect to
  * @returns An Algodv2 client instance
  */
-declare const getAlgodClient: (network: Network) => Algodv2;
+declare const getAlgodClient: (network: Network) => algosdk.Algodv2;
 /**
  * Gets an Indexer client instance for the specified network
  * @param network - The network to connect to
  * @returns An Indexer client instance
  */
-declare const getIndexerClient: (network: Network) => Indexer;
+declare const getIndexerClient: (network: Network) => algosdk.Indexer;
 /**
  * Converts a Buffer to a base64 encoded string
  * @param buffer - The Buffer to convert

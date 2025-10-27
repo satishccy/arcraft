@@ -354,7 +354,9 @@ Arc19.create = async ({ name, unitName, creator, ipfs, image, properties, networ
         : (0, mimeUtils_1.lookupFromFile)(image.file);
     let blob;
     if (typeof image.file === 'string') {
-        blob = new Blob([await fs_1.default.promises.readFile(image.file)], {
+        const buffer = await fs_1.default.promises.readFile(image.file);
+        const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+        blob = new Blob([arrayBuffer], {
             type: mimeType,
         });
     }
@@ -435,7 +437,9 @@ Arc19.update = async ({ manager, properties, image, assetId, ipfs, network, }) =
             : (0, mimeUtils_1.lookupFromFile)(image.file);
         let blob;
         if (typeof image.file === 'string') {
-            blob = new Blob([await fs_1.default.promises.readFile(image.file)], {
+            const buffer = await fs_1.default.promises.readFile(image.file);
+            const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+            blob = new Blob([arrayBuffer], {
                 type: mimeType,
             });
         }

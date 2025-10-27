@@ -1,4 +1,4 @@
-import algosdk from "algosdk";
+import algosdk from 'algosdk';
 
 const mnemonic = algosdk.generateAccount();
 

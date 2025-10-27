@@ -1,30 +1,30 @@
-import { Arc69, IPFS } from "arcraft";
-import algosdk, { makeBasicAccountTransactionSigner } from "algosdk";
-import path from "path";
-import { PINATA_JWT, MNEMONIC } from "./config";
+import { Arc69, IPFS } from 'arcraft';
+import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
+import path from 'path';
+import { PINATA_JWT, MNEMONIC } from './config';
 
 async function main() {
-  const ipfs = new IPFS("pinata", {
-    provider: "pinata",
+  const ipfs = new IPFS('pinata', {
+    provider: 'pinata',
     jwt: PINATA_JWT,
   });
 
   const account = algosdk.mnemonicToSecretKey(MNEMONIC);
 
   const arc69 = await Arc69.create({
-    name: "Cool NFT",
-    unitName: "CNFT",
+    name: 'Cool NFT',
+    unitName: 'CNFT',
     creator: {
       address: account.addr.toString(),
       signer: makeBasicAccountTransactionSigner(account), // Wallet Signer
     },
     ipfs, // IPFS Instance
     image: {
-      file: path.resolve(__dirname, "./images/juan.webp"), // Pass File Object in frontend
-      name: "juan.webp",
+      file: path.resolve(__dirname, './images/juan.webp'), // Pass File Object in frontend
+      name: 'juan.webp',
     },
-    properties: { from: "arcraft" },
-    network: "testnet",
+    properties: { from: 'arcraft' },
+    network: 'testnet',
     // ... can add more asset fields here (total,decimals,freeze,reserve,clawback,manager,defaultFrozen)
   });
   console.log(
@@ -36,17 +36,17 @@ async function main() {
       address: account.addr.toString(),
       signer: makeBasicAccountTransactionSigner(account),
     },
-    properties: { from: "arcraft", name: "test" }, // properties to update
-    network: "testnet",
+    properties: { from: 'arcraft', name: 'test' }, // properties to update
+    network: 'testnet',
   });
   console.log(
     `Updated ARC69 NFT:\nTransaction ID: ${updated.transactionId}\n\n`
   );
 
-  const existingAsset = await Arc69.fromId(arc69.assetId, "testnet"); // Get existing asset
+  const existingAsset = await Arc69.fromId(arc69.assetId, 'testnet'); // Get existing asset
   const metadataVersions = await Arc69.getMetadataVersions(
     arc69.assetId,
-    "testnet"
+    'testnet'
   ); // Get metadata versions
   console.log(`Metadata Versions: ${JSON.stringify(metadataVersions)}\n`);
 
@@ -68,14 +68,14 @@ async function main() {
   const isArc69 = await Arc69.isArc69(
     existingAsset.getUrl(),
     existingAsset.getIndex(),
-    "testnet"
+    'testnet'
   );
   // Check if asset is ARC69
   console.log(`Is ARC69: ${isArc69}\n`);
 
   const isValidMetadata = await Arc69.hasValidMetadata(
     existingAsset.getIndex(),
-    "testnet"
+    'testnet'
   );
   // Check if metadata is valid
   console.log(`Is Valid Metadata: ${isValidMetadata}\n`);

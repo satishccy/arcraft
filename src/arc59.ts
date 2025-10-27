@@ -1,435 +1,503 @@
-import { Algodv2, Transaction, AtomicTransactionComposer } from 'algosdk';
-import algosdk from 'algosdk';
-type NetworkId = 'mainnet' | 'testnet';
-
-type SenderType = {
-    addr: string;
-    signer: (
-      txnGroup: Transaction[],
-      indexesToSign: number[]
-    ) => Promise<Uint8Array[]>;
-  };
-  
-  export type LogDataType = {
-    account: string;
-    innerTxns: number;
-    mbr: number;
-    routerOptedIn: boolean;
-    routerOptedInCost: number;
-    receiverOptedIn: boolean;
-    receiverAlgoNeededForClaim: number;
-    txnFees: number;
-    totalAmount: number;
-    txnID: string;
-  };
-  
-  export type TxnInfoType = {
-    atomicTxns: AtomicTransactionComposer[];
-    logDataArray: LogDataType[];
-    grandTotal: number;
-    csv: string;
-  };
-
+import { Network } from './types';
+import algosdk, {
+  AtomicTransactionComposer,
+  getApplicationAddress,
+  TransactionWithSigner,
+  TransactionSigner,
+} from 'algosdk';
+import { getAlgodClient } from './utils';
+import { READ_ACCOUNT, simulateRequest } from './const';
+import { arc59Abi } from './abis';
+/**
+ * Utilities for interacting with the ARC-59 Router smart contract on Algorand.
+ *
+ * @remarks
+ * ARC-59 defines an inbox-based routing scheme for ASAs. This class composes
+ * transactions to send assets to a router, and for receivers to claim or reject
+ * assets from their ARC-59 inbox. Read-only methods leverage simulation to
+ * query contract state without sending transactions.
+ */
 export class Arc59 {
-  private getAppId(activeNetwork: NetworkId): number {
-    return activeNetwork === 'mainnet' ? 2449590623 : 643020148;
-  }
-  private computeTotalAmount(log: LogDataType): number {
-    // Prefer explicit totalAmount if present, otherwise recompute from parts
-    if (typeof log.totalAmount === 'number') return log.totalAmount;
-    const parts = [log.txnFees, log.innerTxns, log.mbr, log.receiverAlgoNeededForClaim].filter(
-      (v) => typeof v === 'number'
-    ) as number[];
-    return parts.reduce((a, b) => a + b, 0);
-  }
-  private log(message: string, ...args: unknown[]) {
-    if (this.debugMode) {
-      // eslint-disable-next-line no-console
-      console.debug(`[Arc59] ${message}`, ...args);
-    }
-  }
-  createArc59GroupTxns = async (
-    txn: Transaction[],
-    sender: SenderType,
-    activeAddress: string,
-    algodClient: Algodv2,
-    activeNetwork: NetworkId
-  ) => {
-    this.log('createArc59GroupTxns called', { activeAddress, activeNetwork, count: txn?.length });
-    const txnInfo: TxnInfoType = {
-      atomicTxns: [],
-      logDataArray: [],
-      grandTotal: 0,
-      csv: '',
+  /**
+   * Resolve the ARC-59 router application ID and address for a given network.
+   *
+   * @param network - Target network, e.g. `'mainnet'` or `'testnet'`.
+   * @returns Object containing `appId` and `appAddress`.
+   * @example
+   * ```ts
+   * const { appId, appAddress } = Arc59.getAppInfo('testnet');
+   * console.log(appId, appAddress);
+   * ```
+   */
+  static getAppInfo(network: Network) {
+    const appId = network === 'mainnet' ? 2449590623 : 643020148;
+    const appAddress = getApplicationAddress(appId);
+    return {
+      appId,
+      appAddress,
     };
+  }
 
-    // const atomicTxns: algosdk.AtomicTransactionComposer[] = [];
-    const logDataArray: LogDataType[] = [];
-    const appId = this.getAppId(activeNetwork);
+  /**
+   * Simulate the send flow and fetch information required to send an asset via ARC-59.
+   *
+   * @param network - Target network.
+   * @param assetId - ASA identifier to send.
+   * @param receiver - Receiver's Algorand address.
+   * @returns Simulation result including:
+   * - `itxns`: total inner transactions expected
+   * - `mbr`: minimum balance requirement to cover during the send
+   * - `routerOptedIn`: whether the router is opted into the asset
+   * - `receiverOptedIn`: whether the receiver is opted into the asset
+   * - `receiverAlgoNeededForClaim`: ALGO needed by receiver to claim (in microalgos)
+   * @throws Error if simulation fails or no return value is produced.
+   * @example
+   * ```ts
+   * const info = await Arc59.getAssetSendInfo('testnet', 12345, receiverAddr);
+   * if (!info.receiverOptedIn) {
+   *   // compose routed send using Arc59.sendAsset
+   * }
+   * ```
+   */
+  static async getAssetSendInfo(
+    network: Network,
+    assetId: number,
+    receiver: string
+  ) {
+    const algodClient = getAlgodClient(network);
+    const suggestedParams = await algodClient.getTransactionParams().do();
+    const atc = new algosdk.AtomicTransactionComposer();
+    const appInfo = this.getAppInfo(network);
+    atc.addMethodCall({
+      appID: appInfo.appId,
+      method: arc59Abi.getMethodByName('arc59_getSendAssetInfo'),
+      methodArgs: [receiver, assetId],
+      sender: READ_ACCOUNT,
+      suggestedParams,
+      signer: algosdk.makeEmptyTransactionSigner(),
+    });
+
+    const simulateResult = await atc.simulate(algodClient, simulateRequest);
+    const returnValue = simulateResult.methodResults[0].returnValue;
+    if (!returnValue) {
+      throw new Error('Failed to get asset send info');
+    }
+    const [
+      itxns,
+      mbr,
+      routerOptedIn,
+      receiverOptedIn,
+      receiverAlgoNeededForClaim,
+    ] = returnValue as [bigint, bigint, boolean, boolean, bigint];
+    return {
+      itxns,
+      mbr,
+      routerOptedIn,
+      receiverOptedIn,
+      receiverAlgoNeededForClaim,
+    };
+  }
+
+  /**
+   * Check if an address is opted-in to a given ASA.
+   *
+   * @param network - Target network.
+   * @param assetId - ASA identifier.
+   * @param address - Account address to check.
+   * @returns `true` if the account is opted-in, otherwise `false`.
+   * @example
+   * ```ts
+   * const opted = await Arc59.isOptedIn('testnet', 12345, addr);
+   * ```
+   */
+  static async isOptedIn(network: Network, assetId: number, address: string) {
+    const algodClient = getAlgodClient(network);
+    try {
+      await algodClient.accountAssetInformation(address, assetId).do();
+    } catch {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Get the ARC-59 inbox address for a receiver.
+   *
+   * @param network - Target network.
+   * @param receiver - Receiver's Algorand address.
+   * @returns The inbox account address, or the zero address if not created.
+   * @throws Error if simulation does not return an inbox address.
+   * @example
+   * ```ts
+   * const inbox = await Arc59.getInboxAddress('testnet', receiverAddr);
+   * ```
+   */
+  static async getInboxAddress(network: Network, receiver: string) {
+    const algodClient = getAlgodClient(network);
+    const appInfo = this.getAppInfo(network);
+    const atc = new AtomicTransactionComposer();
+    atc.addMethodCall({
+      appID: appInfo.appId,
+      method: arc59Abi.getMethodByName('arc59_getInbox'),
+      methodArgs: [receiver],
+      sender: READ_ACCOUNT,
+      suggestedParams: await algodClient.getTransactionParams().do(),
+      signer: algosdk.makeEmptyTransactionSigner(),
+    });
+    const simulateResult = await atc.simulate(algodClient, simulateRequest);
+    const returnValue = simulateResult.methodResults[0].returnValue;
+    if (!returnValue) {
+      throw new Error('Failed to get inbox address');
+    }
+    return returnValue as string;
+  }
+
+  /**
+   * Send an ASA to a receiver using ARC-59.
+   *
+   * If the receiver is already opted-in, a direct transfer is submitted. Otherwise,
+   * a composed transaction group routes the asset through the ARC-59 router so the
+   * receiver can later claim it from their inbox.
+   *
+   * @param params - Send parameters.
+   * @param params.network - Target network.
+   * @param params.assetId - ASA identifier to send.
+   * @param params.amount - Amount to send (base units).
+   * @param params.receiver - Receiver account address.
+   * @param params.sender - Sender address and signer for authorizing transactions.
+   * @returns The transaction ID of the submitted group (last tx for routed send, or lone transfer tx for direct send).
+   * @example
+   * ```ts
+   * const txId = await Arc59.sendAsset({
+   *   network: 'testnet',
+   *   assetId: 12345,
+   *   amount: 10,
+   *   receiver: receiverAddr,
+   *   sender: { address: senderAddr, signer }
+   * });
+   * ```
+   */
+  static async sendAsset({
+    network,
+    assetId,
+    amount,
+    receiver,
+    sender,
+  }: {
+    network: Network;
+    assetId: number;
+    amount: number;
+    receiver: string;
+    sender: { address: string; signer: TransactionSigner };
+  }) {
+    const algodClient = getAlgodClient(network);
+    const appInfo = this.getAppInfo(network);
+
+    const sendInfo = await this.getAssetSendInfo(network, assetId, receiver);
     const suggestedParams = await algodClient.getTransactionParams().do();
 
-    try {
-      const appClient = new Arc59Client(
-        {
-          sender,
-          resolveBy: 'id',
-          id: appId,
-        },
-        algodClient
+    if (sendInfo.receiverOptedIn) {
+      const atc = new AtomicTransactionComposer();
+      atc.addTransaction({
+        txn: algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          sender: sender.address,
+          suggestedParams,
+          assetIndex: assetId,
+          receiver: receiver,
+          amount: amount,
+        }),
+        signer: sender.signer,
+      });
+      const result = await atc.submit(algodClient);
+      const txnStatus = await algosdk.waitForConfirmation(
+        algodClient,
+        result[0],
+        3
       );
-
-      const simSender = {
-        addr: activeAddress,
-        signer: algosdk.makeEmptyTransactionSigner(),
-      };
-      const simParams = {
-        allowEmptySignatures: true,
-        allowUnnamedResources: true,
-        fixSigners: true,
-      };
-      for (let i = 0; i < txn.length; i++) {
-        const logData: LogDataType = {} as LogDataType;
-        const receiver = algosdk.encodeAddress(txn[i].to.publicKey);
-        logData.account = receiver;
-
-        const composer = appClient.compose();
-        const appAddr = (await appClient.appClient.getAppReference())
-          .appAddress;
-        const [
-          itxns,
-          mbr,
-          routerOptedIn,
-          receiverOptedIn,
-          receiverAlgoNeededForClaim,
-        ] = (
-          await appClient
-            .compose()
-            .arc59GetSendAssetInfo(
-              {
-                asset: txn[i].assetIndex,
-                receiver: receiver,
-              },
-              {
-                sender: {
-                  ...simSender,
-                  addr: activeAddress,
-                },
-              }
-            )
-            .simulate(simParams)
-        ).returns[0];
-
-        if (receiverOptedIn) {
-          console.log('Receiver is opted in');
-          const atc = new algosdk.AtomicTransactionComposer();
-          atc.addTransaction({ txn: txn[i], signer: sender.signer });
-          atc.buildGroup();
-
-          // push data to the arrays
-          txnInfo.atomicTxns.push(atc);
-
-          // update the logDataArray
-          logDataArray.push({
-            ...logData,
-            txnFees: algosdk.ALGORAND_MIN_TX_FEE,
-            innerTxns: 0,
-            receiverOptedIn: true,
-            mbr: 0,
-            receiverAlgoNeededForClaim: 0,
-            routerOptedIn: routerOptedIn,
-            totalAmount: algosdk.ALGORAND_MIN_TX_FEE,
-            txnID: '',
-          });
-        } else {
-          logData.txnFees = 0;
-
-          // log the inner txns plus the txn fee
-          logData.innerTxns = Number(itxns) * algosdk.ALGORAND_MIN_TX_FEE;
-          logData.txnFees += algosdk.ALGORAND_MIN_TX_FEE;
-
-          let amount = 0;
-          logData.receiverOptedIn = receiverOptedIn;
-
-          logData.mbr = Number(mbr) || 0;
-          logData.receiverAlgoNeededForClaim =
-            Number(receiverAlgoNeededForClaim) || 0;
-
-          if (mbr || receiverAlgoNeededForClaim) {
-            // If the MBR is non-zero, send the MBR to the router
-            const mbrPayment =
-              algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-                to: appAddr,
-                from: activeAddress,
-                suggestedParams,
-                amount: Number(mbr + receiverAlgoNeededForClaim),
-              });
-
-            // add the MBR payment to the atomic transaction plus the txn fee
-            amount +=
-              Number(mbr + receiverAlgoNeededForClaim) +
-              algosdk.ALGORAND_MIN_TX_FEE;
-
-            logData.txnFees += algosdk.ALGORAND_MIN_TX_FEE;
-
-            // add the MBR payment to the atomic transaction
-            composer.addTransaction({
-              txn: mbrPayment,
-              signer: sender.signer,
-            });
-          }
-
-          // If the router is not opted in, add a call to arc59OptRouterIn to do so
-          if (!routerOptedIn) {
-            composer.arc59OptRouterIn({ asa: txn[i].assetIndex });
-
-            // opt-in txn fee
-            amount += algosdk.ALGORAND_MIN_TX_FEE;
-            logData.txnFees += algosdk.ALGORAND_MIN_TX_FEE;
-          }
-          logData.routerOptedIn = routerOptedIn;
-
-          // The transfer of the asset to the router
-          txn[i].to = algosdk.decodeAddress(appAddr);
-
-          // An extra itxn is if we are also sending ALGO for the receiver claim
-          const totalItxns =
-            itxns + (receiverAlgoNeededForClaim === 0n ? 0n : 1n);
-
-          amount += algosdk.ALGORAND_MIN_TX_FEE * Number(totalItxns + 1n);
-
-          const fee = (
-            algosdk.ALGORAND_MIN_TX_FEE * Number(totalItxns + 1n)
-          ).microAlgos();
-          const boxes = [algosdk.decodeAddress(receiver).publicKey];
-          const inboxAddress = (
-            await appClient
-              .compose()
-              .arc59GetInbox({ receiver: receiver }, { sender: simSender })
-              .simulate(simParams)
-          ).returns[0];
-
-          const accounts = [receiver, inboxAddress];
-          const assets = [Number(txn[i].assetIndex)];
-          composer.arc59SendAsset(
-            {
-              axfer: txn[i],
-              receiver: receiver,
-              additionalReceiverFunds: receiverAlgoNeededForClaim,
-            },
-            { sendParams: { fee }, boxes, accounts, assets }
-          );
-          // asset send txn fee
-          amount += algosdk.ALGORAND_MIN_TX_FEE;
-          logData.txnFees += algosdk.ALGORAND_MIN_TX_FEE;
-          logData.totalAmount = amount;
-          logData.txnID = ''; // empty txnID
-
-          // get the atomic transaction composer
-          const atc = await composer.atc();
-
-          // Adjust the app call to 1000 rounds instead of 10 rounds
-          const originalTxns = atc.clone().buildGroup();
-          const unsignedTxn = originalTxns.map((txn) => {
-            txn.txn.lastRound = txn.txn.firstRound + 1000;
-            txn.txn.group = undefined;
-            return txn.txn;
-          });
-
-          const newATC = new algosdk.AtomicTransactionComposer();
-          unsignedTxn.forEach((txn) => {
-            newATC.addTransaction({ txn: txn, signer: sender.signer });
-          });
-
-          newATC.buildGroup();
-          // push data to the arrays
-          txnInfo.atomicTxns.push(newATC);
-          logDataArray.push(logData);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      throw e;
+      return result[0];
     }
-    // Create CSV file for txn logs
-    txnInfo.csv = await convertToCSV(logDataArray);
-    txnInfo.grandTotal = logDataArray
-      .map((logData) => this.computeTotalAmount(logData))
-      .reduce((a, b) => a + b, 0);
 
-    console.log('Grand Total: ', txnInfo.grandTotal);
-    txnInfo.logDataArray = logDataArray;
-    return txnInfo;
-  };
+    sendInfo.receiverAlgoNeededForClaim =
+      sendInfo.receiverAlgoNeededForClaim !== 0n
+        ? sendInfo.receiverAlgoNeededForClaim + 5000n
+        : 0n;
 
-  getAssetsInAssetInbox = async (
-    receiver: string,
-    algodClient: Algodv2,
-    activeNetwork: NetworkId
-  ): Promise<{ assetId: number; amount: number; type: string }[]> => {
-    this.log('getAssetsInAssetInbox called', { receiver, activeNetwork });
-    try {
-      const appClient = new Arc59Client(
-        {
-          resolveBy: "id",
-          id: this.getAppId(activeNetwork),
-        },
-        algodClient
-      );
-  
-      const simSender = {
-        addr: receiver,
-        signer: algosdk.makeEmptyTransactionSigner(),
-      };
-      const simParams = {
-        allowEmptySignatures: true,
-        allowUnnamedResources: true,
-        fixSigners: true,
-      };
-  
-      const inboxAddress = (
-        await appClient
-          .compose()
-          .arc59GetInbox({ receiver: receiver }, { sender: simSender })
-          .simulate(simParams)
-      ).returns[0];
-  
-      if (inboxAddress !== ALGORAND_ZERO_ADDRESS) {
-        console.log(inboxAddress);
-  
-        const idx = getIndexerURL(activeNetwork);
-        const url = `${idx}/v2/accounts/${inboxAddress}/assets`;
-  
-        let resp = await axios.get(url);
-        let finalAssets = resp.data.assets;
-        while (resp.data["next-token"]) {
-          const next = resp.data["next-token"];
-          const url = `${idx}/v2/accounts/${inboxAddress}/assets?next=${next}`;
-          resp = await axios.get(url);
-          finalAssets = finalAssets.concat(resp.data.assets);
-        }
-  
-        const assets = [];
-  
-        for (let i = 0; i < finalAssets.length; i++) {
-          const asset = finalAssets[i];
-          if (
-            asset["is-frozen"] == false &&
-            asset["deleted"] == false &&
-            asset.amount > 0
-          ) {
-            assets.push({
-              assetId: asset["asset-id"],
-              amount: asset.amount,
-              type: "inbox",
-            });
-          }
-        }
-  
-        return assets;
-      } else {
-        return [];
-      }
-    } catch (e) {
-      console.error(e);
-      throw e;
+    const composer = new AtomicTransactionComposer();
+    if (sendInfo.mbr > 0n || sendInfo.receiverAlgoNeededForClaim > 0n) {
+      const mbrPayment = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: sender.address,
+        suggestedParams,
+        amount: sendInfo.mbr + sendInfo.receiverAlgoNeededForClaim,
+        receiver: appInfo.appAddress,
+      });
+      composer.addTransaction({
+        txn: mbrPayment,
+        signer: sender.signer,
+      });
     }
-  };
 
-  generateARC59ClaimTxns = async (
-    assetId: bigint,
-    claimer: string,
-    algodClient: Algodv2,
-    activeNetwork: NetworkId
-  ) => {
-    this.log('generateARC59ClaimTxns called', { assetId: Number(assetId), claimer, activeNetwork });
-    if (!claimer || typeof claimer !== 'string') {
-      throw new Error('Invalid claimer address');
+    if (!sendInfo.routerOptedIn) {
+      composer.addMethodCall({
+        appID: appInfo.appId,
+        method: arc59Abi.getMethodByName('arc59_optRouterIn'),
+        methodArgs: [assetId],
+        sender: sender.address,
+        suggestedParams,
+        signer: sender.signer,
+      });
     }
-    if (typeof assetId !== 'bigint' || assetId <= 0n) {
-      throw new Error('Invalid assetId');
-    }
-    const algorand = algokit.AlgorandClient.fromClients({ algod: algodClient });
-  
-    // Check if the claimer has opted in to the asset
-    let claimerOptedIn = false;
-    try {
-      await algorand.asset.getAccountInformation(claimer, assetId);
-      claimerOptedIn = true;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_: any) {
-      // Do nothing
-    }
-  
-    const simSender = {
-      addr: claimer,
-      signer: algosdk.makeEmptyTransactionSigner(),
+
+    const boxes = [algosdk.decodeAddress(receiver).publicKey];
+    const inboxAddress = await this.getInboxAddress(network, receiver);
+    const axfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      sender: sender.address,
+      suggestedParams,
+      assetIndex: assetId,
+      receiver: appInfo.appAddress,
+      amount: amount,
+    });
+    const axferWithSigner: TransactionWithSigner = {
+      txn: axfer,
+      signer: sender.signer,
     };
-  
-    const simParams = {
-      allowEmptySignatures: true,
-      allowUnnamedResources: true,
-      fixSigners: true,
-    };
-  
-    const appClient = new Arc59Client(
-      {
-        sender: simSender,
-        resolveBy: "id",
-        id: this.getAppId(activeNetwork),
+    const totalItxns =
+      sendInfo.itxns + (sendInfo.receiverAlgoNeededForClaim === 0n ? 0n : 1n);
+    composer.addMethodCall({
+      appID: appInfo.appId,
+      method: arc59Abi.getMethodByName('arc59_sendAsset'),
+      methodArgs: [
+        axferWithSigner,
+        receiver,
+        sendInfo.receiverAlgoNeededForClaim,
+      ],
+      sender: sender.address,
+      suggestedParams: {
+        ...suggestedParams,
+        fee: 1000 + 1000 * Number(totalItxns),
+        flatFee: true,
       },
-      algodClient
+      boxes: boxes.map((box) => ({
+        appIndex: appInfo.appId,
+        name: box,
+      })),
+      appAccounts: [receiver, inboxAddress],
+      appForeignAssets: [assetId],
+      signer: sender.signer,
+    });
+    const result = await composer.submit(algodClient);
+    await algosdk.waitForConfirmation(
+      algodClient,
+      result[result.length - 1],
+      3
     );
-  
-    const inboxAddress = (
-      await appClient
-        .compose()
-        .arc59GetInbox({ receiver: claimer }, { sender: simSender })
-        .simulate(simParams)
-    ).returns[0];
-  
-    const composer = appClient.compose();
-  
-    const totalTxns = 3;
-  
-    // If the claimer hasn't already opted in, add a transaction to do so
-    if (!claimerOptedIn) {
-      composer.addTransaction(
-        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-          from: claimer,
-          to: claimer,
-          assetIndex: Number(assetId),
-          amount: 0,
-          suggestedParams: await algodClient.getTransactionParams().do(),
-          note: new TextEncoder().encode(
-            "via wen.tools - free tools for creators and collectors | " +
-              Math.random().toString(36).substring(2)
-          ),
-        })
-      );
+    return result[result.length - 1];
+  }
+
+  /**
+   * List ASA holdings currently held in a receiver's ARC-59 inbox.
+   *
+   * @param params - Query parameters.
+   * @param params.network - Target network.
+   * @param params.receiver - Receiver's Algorand address.
+   * @returns Array of assets in the inbox with `assetId`, `amount`, and `isFrozen`.
+   * @example
+   * ```ts
+   * const assets = await Arc59.getAssetsInInbox({ network: 'testnet', receiver: addr });
+   * ```
+   */
+  static async getAssetsInInbox({
+    network,
+    receiver,
+  }: {
+    network: Network;
+    receiver: string;
+  }) {
+    const algodClient = getAlgodClient(network);
+    const appInfo = this.getAppInfo(network);
+    const inboxAddress = await this.getInboxAddress(network, receiver);
+    if (inboxAddress !== algosdk.ALGORAND_ZERO_ADDRESS_STRING) {
+      const assets = await algodClient.accountInformation(inboxAddress).do();
+      const finalAssets: {
+        assetId: number;
+        amount: number;
+        isFrozen: boolean;
+      }[] = [];
+      assets?.assets?.forEach((asset) => {
+        finalAssets.push({
+          assetId: Number(asset.assetId),
+          amount: Number(asset.amount),
+          isFrozen: asset.isFrozen,
+        });
+      });
+      return finalAssets;
+    } else {
+      return [];
     }
-  
-    composer.arc59Claim(
-      { asa: assetId },
-      {
-        note: new TextEncoder().encode(
-          "via wen.tools - free tools for creators and collectors | " +
-            Math.random().toString(36).substring(2)
-        ),
-        boxes: [algosdk.decodeAddress(claimer).publicKey],
-        accounts: [claimer, inboxAddress],
-        assets: [Number(assetId)],
-        sendParams: { fee: algokit.microAlgos(1000 * totalTxns) },
-      }
+  }
+
+  /**
+   * Claim a routed ASA from the receiver's ARC-59 inbox.
+   *
+   * If the receiver lacks the opt-in to the ASA, this method composes the opt-in
+   * transaction automatically. If the inbox holds excess ALGO above min-balance,
+   * a claim of ALGO is also composed so the fee covers the additional calls.
+   *
+   * @param params - Claim parameters.
+   * @param params.network - Target network.
+   * @param params.receiver - Receiver address and signer authorizing the claim.
+   * @param params.assetId - ASA identifier to claim.
+   * @returns The transaction ID of the submitted claim group.
+   * @example
+   * ```ts
+   * const txId = await Arc59.claimAsset({
+   *   network: 'testnet',
+   *   receiver: { address: receiverAddr, signer },
+   *   assetId: 12345,
+   * });
+   * ```
+   */
+  static async claimAsset({
+    network,
+    receiver,
+    assetId,
+  }: {
+    network: Network;
+    receiver: { address: string; signer: TransactionSigner };
+    assetId: number;
+  }) {
+    const algodClient = getAlgodClient(network);
+    const appInfo = this.getAppInfo(network);
+    const suggestedParams = await algodClient.getTransactionParams().do();
+    const composer = new AtomicTransactionComposer();
+    const inboxAddress = await this.getInboxAddress(network, receiver.address);
+    const inboxInfo = await algodClient.accountInformation(inboxAddress).do();
+    const isReceiverOptedIn = await this.isOptedIn(
+      network,
+      assetId,
+      receiver.address
     );
-  
-    const atc = await composer.atc();
-  
-    return getTxnGroupFromATC(atc);
-  };
 
-  private debugMode = false;
+    let totalTxns = 3;
 
-  setDebugMode(enabled: boolean) {
-    this.debugMode = enabled;
+    if (inboxInfo.amount > inboxInfo.minBalance) {
+      totalTxns += 2;
+      composer.addMethodCall({
+        appID: appInfo.appId,
+        method: arc59Abi.getMethodByName('arc59_claimAlgo'),
+        methodArgs: [],
+        sender: receiver.address,
+        suggestedParams: {
+          ...suggestedParams,
+          fee: 0,
+          flatFee: true,
+        },
+        signer: receiver.signer,
+      });
+    }
+
+    if (!isReceiverOptedIn) {
+      composer.addTransaction({
+        txn: algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          sender: receiver.address,
+          receiver: receiver.address,
+          suggestedParams,
+          assetIndex: assetId,
+          amount: 0,
+        }),
+        signer: receiver.signer,
+      });
+    }
+
+    composer.addMethodCall({
+      appID: appInfo.appId,
+      method: arc59Abi.getMethodByName('arc59_claim'),
+      methodArgs: [assetId],
+      sender: receiver.address,
+      suggestedParams: {
+        ...suggestedParams,
+        fee: 1000 * totalTxns,
+        flatFee: true,
+      },
+      boxes: [
+        {
+          appIndex: appInfo.appId,
+          name: algosdk.decodeAddress(receiver.address).publicKey,
+        },
+      ],
+      appAccounts: [receiver.address, inboxAddress],
+      appForeignAssets: [assetId],
+      signer: receiver.signer,
+    });
+
+    const result = await composer.submit(algodClient);
+    await algosdk.waitForConfirmation(
+      algodClient,
+      result[result.length - 1],
+      3
+    );
+    return result[result.length - 1];
+  }
+
+  /**
+   * Reject a routed ASA from the receiver's ARC-59 inbox.
+   *
+   * @param params - Reject parameters.
+   * @param params.network - Target network.
+   * @param params.receiver - Receiver address and signer authorizing the rejection.
+   * @param params.assetId - ASA identifier to reject.
+   * @returns The transaction ID of the submitted reject group.
+   * @example
+   * ```ts
+   * const txId = await Arc59.rejectAsset({
+   *   network: 'testnet',
+   *   receiver: { address: receiverAddr, signer },
+   *   assetId: 12345,
+   * });
+   * ```
+   */
+  static async rejectAsset({
+    network,
+    receiver,
+    assetId,
+  }: {
+    network: Network;
+    receiver: { address: string; signer: TransactionSigner };
+    assetId: number;
+  }) {
+    const algodClient = getAlgodClient(network);
+    const appInfo = this.getAppInfo(network);
+    const suggestedParams = await algodClient.getTransactionParams().do();
+    const composer = new AtomicTransactionComposer();
+    const inboxAddress = await this.getInboxAddress(network, receiver.address);
+    const assetInfo = await algodClient.getAssetByID(assetId).do();
+    let totalTxns = 3;
+    composer.addMethodCall({
+      appID: appInfo.appId,
+      method: arc59Abi.getMethodByName('arc59_reject'),
+      methodArgs: [assetId],
+      sender: receiver.address,
+      suggestedParams: {
+        ...suggestedParams,
+        fee: 1000 * totalTxns,
+        flatFee: true,
+      },
+      boxes: [
+        {
+          appIndex: appInfo.appId,
+          name: algosdk.decodeAddress(receiver.address).publicKey,
+        },
+      ],
+      appAccounts: [receiver.address, inboxAddress, assetInfo.params.creator],
+      appForeignAssets: [assetId],
+      signer: receiver.signer,
+    });
+
+    const result = await composer.submit(algodClient);
+    await algosdk.waitForConfirmation(
+      algodClient,
+      result[result.length - 1],
+      3
+    );
+    return result[result.length - 1];
   }
 }

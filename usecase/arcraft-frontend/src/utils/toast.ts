@@ -2,7 +2,7 @@ import { type Id, toast, type ToastOptions } from 'react-toastify';
 
 // Custom toast configurations
 const defaultOptions: ToastOptions = {
-  position: "top-right",
+  position: 'top-right',
   autoClose: 5000,
   hideProgressBar: false,
   closeOnClick: true,
@@ -51,7 +51,11 @@ export const showLoadingToast = (message: string) => {
 };
 
 // Update an existing toast (useful for loading states)
-export const updateToast = (toastId: Id, message: string, type: 'success' | 'error' | 'info' | 'warning') => {
+export const updateToast = (
+  toastId: Id,
+  message: string,
+  type: 'success' | 'error' | 'info' | 'warning'
+) => {
   return toast.update(toastId, {
     render: message,
     type: type,

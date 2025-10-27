@@ -4,7 +4,10 @@
  */
 
 // Environment detection
-const isNode = typeof window === 'undefined' && typeof process !== 'undefined' && process.versions?.node;
+const isNode =
+  typeof window === 'undefined' &&
+  typeof process !== 'undefined' &&
+  process.versions?.node;
 
 // Dynamic import for Node.js mime-types package
 let mimeTypes: any;
@@ -31,7 +34,7 @@ const commonMimeTypes: Record<string, string> = {
   '.svg': 'image/svg+xml',
   '.tiff': 'image/tiff',
   '.tif': 'image/tiff',
-  
+
   // Videos
   '.mp4': 'video/mp4',
   '.avi': 'video/x-msvideo',
@@ -40,7 +43,7 @@ const commonMimeTypes: Record<string, string> = {
   '.flv': 'video/x-flv',
   '.webm': 'video/webm',
   '.mkv': 'video/x-matroska',
-  
+
   // Audio
   '.mp3': 'audio/mpeg',
   '.wav': 'audio/wav',
@@ -48,16 +51,18 @@ const commonMimeTypes: Record<string, string> = {
   '.m4a': 'audio/mp4',
   '.aac': 'audio/aac',
   '.flac': 'audio/flac',
-  
+
   // Documents
   '.pdf': 'application/pdf',
   '.doc': 'application/msword',
-  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.docx':
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   '.xls': 'application/vnd.ms-excel',
   '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   '.ppt': 'application/vnd.ms-powerpoint',
-  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  
+  '.pptx':
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+
   // Text
   '.txt': 'text/plain',
   '.html': 'text/html',
@@ -67,7 +72,7 @@ const commonMimeTypes: Record<string, string> = {
   '.json': 'application/json',
   '.xml': 'application/xml',
   '.csv': 'text/csv',
-  
+
   // Archives
   '.zip': 'application/zip',
   '.tar': 'application/x-tar',
@@ -85,12 +90,12 @@ function getFileExtension(filename: string): string {
   if (!filename || typeof filename !== 'string') {
     return '';
   }
-  
+
   const lastDotIndex = filename.lastIndexOf('.');
   if (lastDotIndex === -1 || lastDotIndex === filename.length - 1) {
     return '';
   }
-  
+
   return filename.substring(lastDotIndex).toLowerCase();
 }
 
@@ -132,7 +137,7 @@ export function lookupFromFile(file: File): string {
   if (file.type && file.type !== '') {
     return file.type;
   }
-  
+
   // Fallback to filename-based lookup
   return lookup(file.name);
 }
@@ -146,4 +151,4 @@ export const mime = {
   getFileExtension,
 };
 
-export default mime; 
+export default mime;

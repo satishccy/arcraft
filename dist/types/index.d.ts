@@ -16,5 +16,6 @@ export { CoreAsset } from './coreAsset';
 export { Arc3 } from './arc3';
 export { Arc19 } from './arc19';
 export { Arc69 } from './arc69';
+export { Arc59 } from './arc59';
 export { AssetFactory } from './assetFactory';
 export { Arc82, Arc82Utils, Arc82ParseError, Arc82QueryError } from './arc82';

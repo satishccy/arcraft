@@ -20,7 +20,7 @@ module.exports = {
     extensionAlias: { '.js': ['.ts', '.js'] },
     alias: {
       'process/browser': require.resolve('process/browser'),
-      'process': require.resolve('process/browser'),
+      process: require.resolve('process/browser'),
     },
     fallback: {
       fs: false,
@@ -56,7 +56,9 @@ module.exports = {
       process: 'process/browser',
     }),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+      'process.env.NODE_ENV': JSON.stringify(
+        process.env.NODE_ENV || 'production'
+      ),
       global: 'globalThis',
     }),
   ],

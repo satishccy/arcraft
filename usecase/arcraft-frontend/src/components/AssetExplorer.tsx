@@ -21,7 +21,7 @@ interface QueryResult {
 
 export function AssetExplorer() {
   const [queryType, setQueryType] = useState<QueryType>('app');
-  const { activeNetwork } = useNetwork(); 
+  const { activeNetwork } = useNetwork();
   const [assetId, setAssetId] = useState('');
   const [appId, setAppId] = useState('');
   const [customUri, setCustomUri] = useState('');
@@ -163,7 +163,10 @@ export function AssetExplorer() {
 
       let queryResult: any;
       if (parsed.type === 'app') {
-        queryResult = await Arc82.queryApplication(parsed, activeNetwork as Network);
+        queryResult = await Arc82.queryApplication(
+          parsed,
+          activeNetwork as Network
+        );
         setResult({
           type: 'app',
           id: parsed.id,
@@ -529,7 +532,10 @@ export function AssetExplorer() {
                       </span>
                     </div>
                     <pre className="bg-white border border-green-200 rounded p-4 text-sm overflow-auto max-h-96">
-                      <JsonRenderer data={result.data} network={activeNetwork as Network} />
+                      <JsonRenderer
+                        data={result.data}
+                        network={activeNetwork as Network}
+                      />
                     </pre>
                   </div>
                 ) : (

@@ -19,6 +19,7 @@ export { CoreAsset } from './coreAsset';
 export { Arc3 } from './arc3';
 export { Arc19 } from './arc19';
 export { Arc69 } from './arc69';
+export { Arc59 } from './arc59';
 // Export AssetFactory (depends on all ARC classes)
 export { AssetFactory } from './assetFactory';
 // Export ARC-82 (standalone)

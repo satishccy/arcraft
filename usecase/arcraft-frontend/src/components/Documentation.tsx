@@ -35,7 +35,11 @@ export function Documentation() {
     { id: 'arc82', name: 'ARC-82', icon: CodeBracketIcon },
     { id: 'ipfs', name: 'IPFS Integration', icon: LinkIcon },
     { id: 'typescript', name: 'TypeScript', icon: ShieldCheckIcon },
-    { id: 'cross-platform', name: 'Cross-Platform', icon: DevicePhoneMobileIcon },
+    {
+      id: 'cross-platform',
+      name: 'Cross-Platform',
+      icon: DevicePhoneMobileIcon,
+    },
     { id: 'examples', name: 'Examples', icon: CodeBracketIcon },
     { id: 'api', name: 'API Reference', icon: CogIcon },
   ];
@@ -85,7 +89,8 @@ export function Documentation() {
             Arcraft SDK Documentation
           </h1>
           <p className="text-xl text-gray-600">
-            Complete guide to building NFTs and blockchain applications with Algorand ARC standards
+            Complete guide to building NFTs and blockchain applications with
+            Algorand ARC standards
           </p>
           <div id="top" className="mt-6 flex justify-center space-x-4">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -123,10 +128,12 @@ export function Documentation() {
                   );
                 })}
               </nav>
-              
+
               {/* Quick Links */}
               <div className="mt-8 pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Links</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                  Quick Links
+                </h3>
                 <div className="space-y-2">
                   <a
                     href="https://github.com/satishccy/arcraft"
@@ -134,8 +141,12 @@ export function Documentation() {
                     rel="noopener noreferrer"
                     className="flex items-center text-sm text-gray-600 hover:text-blue-600"
                   >
-                    <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                     </svg>
                     GitHub Repository
                   </a>
@@ -145,8 +156,12 @@ export function Documentation() {
                     rel="noopener noreferrer"
                     className="flex items-center text-sm text-gray-600 hover:text-red-600"
                   >
-                    <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.377h-3.456L12.04 19.17H5.113z"/>
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.377h-3.456L12.04 19.17H5.113z" />
                     </svg>
                     NPM Package
                   </a>
@@ -188,9 +203,12 @@ function OverviewSection() {
           🎯 What is Arcraft?
         </h3>
         <p className="text-blue-800 leading-relaxed">
-          Arcraft is a comprehensive TypeScript/JavaScript SDK that simplifies working with Algorand Request for Comments (ARC) standards. 
-          It provides a unified interface for creating, managing, and querying NFTs across multiple ARC standards while handling the 
-          complexity of IPFS integration, cross-platform compatibility, and blockchain interactions.
+          Arcraft is a comprehensive TypeScript/JavaScript SDK that simplifies
+          working with Algorand Request for Comments (ARC) standards. It
+          provides a unified interface for creating, managing, and querying NFTs
+          across multiple ARC standards while handling the complexity of IPFS
+          integration, cross-platform compatibility, and blockchain
+          interactions.
         </p>
       </div>
 
@@ -201,7 +219,8 @@ function OverviewSection() {
             Multi-ARC Support
           </h3>
           <p className="text-blue-800 mb-3">
-            Create and manage NFTs using ARC-3, ARC-19, and ARC-69 standards with a unified interface.
+            Create and manage NFTs using ARC-3, ARC-19, and ARC-69 standards
+            with a unified interface.
           </p>
           <ul className="text-sm text-blue-700 space-y-1">
             <li>• ARC-3: External metadata storage</li>
@@ -216,7 +235,8 @@ function OverviewSection() {
             IPFS Integration
           </h3>
           <p className="text-cyan-800 mb-3">
-            Seamless file uploads to IPFS using multiple providers with automatic fallback.
+            Seamless file uploads to IPFS using multiple providers with
+            automatic fallback.
           </p>
           <ul className="text-sm text-cyan-700 space-y-1">
             <li>• Pinata integration</li>
@@ -246,7 +266,8 @@ function OverviewSection() {
             Enterprise Ready
           </h3>
           <p className="text-purple-800 mb-3">
-            Production-ready with comprehensive TypeScript support and error handling.
+            Production-ready with comprehensive TypeScript support and error
+            handling.
           </p>
           <ul className="text-sm text-purple-700 space-y-1">
             <li>• Full TypeScript definitions</li>
@@ -284,19 +305,34 @@ function OverviewSection() {
       </div>
 
       <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">🎯 Use Cases</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">
+          🎯 Use Cases
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div className="bg-white p-4 rounded border">
-            <h4 className="font-semibold text-gray-900 mb-2">NFT Marketplaces</h4>
-            <p className="text-gray-600">Build comprehensive NFT platforms with support for multiple standards</p>
+            <h4 className="font-semibold text-gray-900 mb-2">
+              NFT Marketplaces
+            </h4>
+            <p className="text-gray-600">
+              Build comprehensive NFT platforms with support for multiple
+              standards
+            </p>
           </div>
           <div className="bg-white p-4 rounded border">
-            <h4 className="font-semibold text-gray-900 mb-2">DeFi Applications</h4>
-            <p className="text-gray-600">Create financial applications with asset management capabilities</p>
+            <h4 className="font-semibold text-gray-900 mb-2">
+              DeFi Applications
+            </h4>
+            <p className="text-gray-600">
+              Create financial applications with asset management capabilities
+            </p>
           </div>
           <div className="bg-white p-4 rounded border">
-            <h4 className="font-semibold text-gray-900 mb-2">Gaming Platforms</h4>
-            <p className="text-gray-600">Develop games with tradeable in-game assets and collectibles</p>
+            <h4 className="font-semibold text-gray-900 mb-2">
+              Gaming Platforms
+            </h4>
+            <p className="text-gray-600">
+              Develop games with tradeable in-game assets and collectibles
+            </p>
           </div>
         </div>
       </div>
@@ -312,13 +348,17 @@ function InstallationSection() {
       </h2>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">Quick Installation</h3>
+        <h3 className="text-lg font-semibold text-blue-900 mb-3">
+          Quick Installation
+        </h3>
         <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
           <code>npm install arcraft</code>
         </pre>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Package Managers</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Package Managers
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <h4 className="font-semibold text-gray-900 mb-2">NPM</h4>
@@ -340,19 +380,32 @@ function InstallationSection() {
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Prerequisites</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Prerequisites
+      </h3>
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="font-semibold text-yellow-900 mb-3">Environment Requirements</h4>
+            <h4 className="font-semibold text-yellow-900 mb-3">
+              Environment Requirements
+            </h4>
             <ul className="text-yellow-800 space-y-2 text-sm">
-                           <li>• <strong>Node.js:</strong> {'>'}= 18.0.0 (for Node.js usage)</li>
-             <li>• <strong>Browser:</strong> Modern browsers with ES6 modules</li>
-             <li>• <strong>TypeScript:</strong> {'>'}= 5.0.0 (optional but recommended)</li>
+              <li>
+                • <strong>Node.js:</strong> {'>'}= 18.0.0 (for Node.js usage)
+              </li>
+              <li>
+                • <strong>Browser:</strong> Modern browsers with ES6 modules
+              </li>
+              <li>
+                • <strong>TypeScript:</strong> {'>'}= 5.0.0 (optional but
+                recommended)
+              </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-yellow-900 mb-3">Algorand Setup</h4>
+            <h4 className="font-semibold text-yellow-900 mb-3">
+              Algorand Setup
+            </h4>
             <ul className="text-yellow-800 space-y-2 text-sm">
               <li>• Algorand account with funds for asset creation</li>
               <li>• Access to Algod and Indexer services</li>
@@ -362,12 +415,24 @@ function InstallationSection() {
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">IPFS Provider Setup</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        IPFS Provider Setup
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-pink-50 border border-pink-200 rounded-lg p-6">
           <h4 className="font-semibold text-pink-900 mb-3">Pinata Setup</h4>
           <ol className="text-pink-800 space-y-2 text-sm">
-            <li>1. Sign up at <a href="https://pinata.cloud" className="text-pink-600 underline" target="_blank" rel="noopener noreferrer">pinata.cloud</a></li>
+            <li>
+              1. Sign up at{' '}
+              <a
+                href="https://pinata.cloud"
+                className="text-pink-600 underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                pinata.cloud
+              </a>
+            </li>
             <li>2. Generate JWT token from API Keys section</li>
             <li>3. Use JWT token in your configuration</li>
           </ol>
@@ -375,14 +440,26 @@ function InstallationSection() {
         <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
           <h4 className="font-semibold text-indigo-900 mb-3">Filebase Setup</h4>
           <ol className="text-indigo-800 space-y-2 text-sm">
-            <li>1. Sign up at <a href="https://filebase.com" className="text-indigo-600 underline" target="_blank" rel="noopener noreferrer">filebase.com</a></li>
+            <li>
+              1. Sign up at{' '}
+              <a
+                href="https://filebase.com"
+                className="text-indigo-600 underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                filebase.com
+              </a>
+            </li>
             <li>2. Create API token from Access Keys</li>
             <li>3. Use token in your configuration</li>
           </ol>
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Basic Setup Example</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Basic Setup Example
+      </h3>
       <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto mb-6">
         <code>{`import { Arc3, IPFS } from 'arcraft';
 import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
@@ -400,9 +477,14 @@ const account = algosdk.mnemonicToSecretKey(process.env.MNEMONIC);
 console.log('Setup complete! Ready to create NFTs.');`}</code>
       </pre>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Environment Variables</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Environment Variables
+      </h3>
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-        <p className="text-gray-600 mb-4">Create a <code className="bg-gray-200 px-2 py-1 rounded">.env</code> file in your project root:</p>
+        <p className="text-gray-600 mb-4">
+          Create a <code className="bg-gray-200 px-2 py-1 rounded">.env</code>{' '}
+          file in your project root:
+        </p>
         <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
           <code>{`# IPFS Provider (choose one)
 PINATA_JWT_TOKEN=your_pinata_jwt_token_here
@@ -417,30 +499,41 @@ NETWORK=testnet`}</code>
       </div>
 
       <div className="bg-red-50 border border-red-200 rounded-lg p-6 mt-8">
-        <h3 className="text-lg font-semibold text-red-900 mb-3">⚠️ Browser Compatibility Issues</h3>
+        <h3 className="text-lg font-semibold text-red-900 mb-3">
+          ⚠️ Browser Compatibility Issues
+        </h3>
         <p className="text-red-800 mb-4">
-          When using Arcraft in frontend applications (React, Vue, etc.), you may encounter these common errors:
+          When using Arcraft in frontend applications (React, Vue, etc.), you
+          may encounter these common errors:
         </p>
         <div className="bg-red-100 rounded p-3 mb-4">
           <code className="text-red-900 text-sm">
-            • "Offset is outside the bounds of the DataView"<br/>
-            • "global is not defined"<br/>
-            • "Buffer is not defined"
+            • "Offset is outside the bounds of the DataView"
+            <br />
+            • "global is not defined"
+            <br />• "Buffer is not defined"
           </code>
         </div>
-        
-        <h4 className="font-semibold text-red-900 mb-3">Solution: Add Browser Polyfills</h4>
-        
+
+        <h4 className="font-semibold text-red-900 mb-3">
+          Solution: Add Browser Polyfills
+        </h4>
+
         <div className="space-y-4">
           <div>
-            <p className="text-red-800 font-medium mb-2">1. Install buffer package:</p>
+            <p className="text-red-800 font-medium mb-2">
+              1. Install buffer package:
+            </p>
             <pre className="bg-gray-900 text-gray-100 rounded p-3 text-sm overflow-x-auto">
               <code>npm install buffer</code>
             </pre>
           </div>
-          
+
           <div>
-            <p className="text-red-800 font-medium mb-2">2. Add polyfills to your main entry file (main.tsx, index.tsx, etc.):</p>
+            <p className="text-red-800 font-medium mb-2">
+              2. Add polyfills to your main entry file (main.tsx, index.tsx,
+              etc.):
+            </p>
             <pre className="bg-gray-900 text-gray-100 rounded p-3 text-sm overflow-x-auto">
               <code>{`// Add these imports at the top of your main.tsx or index.tsx
 import { Buffer } from 'buffer';
@@ -450,9 +543,11 @@ import { Buffer } from 'buffer';
 (globalThis as any).Buffer = Buffer;`}</code>
             </pre>
           </div>
-          
+
           <div>
-            <p className="text-red-800 font-medium mb-2">3. For Vite users, add to vite.config.ts:</p>
+            <p className="text-red-800 font-medium mb-2">
+              3. For Vite users, add to vite.config.ts:
+            </p>
             <pre className="bg-gray-900 text-gray-100 rounded p-3 text-sm overflow-x-auto">
               <code>{`import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -473,9 +568,11 @@ export default defineConfig({
 });`}</code>
             </pre>
           </div>
-          
+
           <div>
-            <p className="text-red-800 font-medium mb-2">4. For Create React App users, add to package.json:</p>
+            <p className="text-red-800 font-medium mb-2">
+              4. For Create React App users, add to package.json:
+            </p>
             <pre className="bg-gray-900 text-gray-100 rounded p-3 text-sm overflow-x-auto">
               <code>{`{
   "browser": {
@@ -485,11 +582,12 @@ export default defineConfig({
             </pre>
           </div>
         </div>
-        
+
         <div className="mt-4 p-3 bg-red-100 rounded">
           <p className="text-red-800 text-sm">
-            <strong>Note:</strong> These polyfills are required because Arcraft uses Node.js-specific modules 
-            (like Buffer and crypto) that need to be polyfilled in browser environments.
+            <strong>Note:</strong> These polyfills are required because Arcraft
+            uses Node.js-specific modules (like Buffer and crypto) that need to
+            be polyfilled in browser environments.
           </p>
         </div>
       </div>
@@ -895,9 +993,10 @@ function TypeScriptSection() {
           🎯 Why TypeScript?
         </h3>
         <p className="text-blue-800 leading-relaxed">
-          Arcraft is built with TypeScript from the ground up, providing comprehensive type safety, 
-          better developer experience, and reduced runtime errors. Every function, class, and interface 
-          is fully typed and documented.
+          Arcraft is built with TypeScript from the ground up, providing
+          comprehensive type safety, better developer experience, and reduced
+          runtime errors. Every function, class, and interface is fully typed
+          and documented.
         </p>
       </div>
 
@@ -908,10 +1007,22 @@ function TypeScriptSection() {
             Type Safety
           </h3>
           <ul className="text-green-800 text-sm space-y-2">
-            <li>• <strong>Compile-time error detection</strong> - Catch errors before runtime</li>
-            <li>• <strong>Strict type checking</strong> - Ensures data integrity across all operations</li>
-            <li>• <strong>Interface validation</strong> - Validates function parameters and return types</li>
-            <li>• <strong>Generic support</strong> - Type-safe operations across different asset types</li>
+            <li>
+              • <strong>Compile-time error detection</strong> - Catch errors
+              before runtime
+            </li>
+            <li>
+              • <strong>Strict type checking</strong> - Ensures data integrity
+              across all operations
+            </li>
+            <li>
+              • <strong>Interface validation</strong> - Validates function
+              parameters and return types
+            </li>
+            <li>
+              • <strong>Generic support</strong> - Type-safe operations across
+              different asset types
+            </li>
           </ul>
         </div>
 
@@ -921,15 +1032,29 @@ function TypeScriptSection() {
             Developer Experience
           </h3>
           <ul className="text-purple-800 text-sm space-y-2">
-            <li>• <strong>IntelliSense support</strong> - Auto-completion in VS Code and other IDEs</li>
-            <li>• <strong>Parameter hints</strong> - Detailed information about function parameters</li>
-            <li>• <strong>Documentation on hover</strong> - TypeDoc comments accessible in editor</li>
-            <li>• <strong>Refactoring support</strong> - Safe code refactoring with type checking</li>
+            <li>
+              • <strong>IntelliSense support</strong> - Auto-completion in VS
+              Code and other IDEs
+            </li>
+            <li>
+              • <strong>Parameter hints</strong> - Detailed information about
+              function parameters
+            </li>
+            <li>
+              • <strong>Documentation on hover</strong> - TypeDoc comments
+              accessible in editor
+            </li>
+            <li>
+              • <strong>Refactoring support</strong> - Safe code refactoring
+              with type checking
+            </li>
           </ul>
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Type Definitions</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Type Definitions
+      </h3>
       <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto mb-6">
         <code>{`// Core interfaces
 interface Arc3CreateOptions {
@@ -964,7 +1089,9 @@ type FilebaseConfig = {
 };`}</code>
       </pre>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Usage with TypeScript</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Usage with TypeScript
+      </h3>
       <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto mb-6">
         <code>{`import { Arc3, IPFS, Network, PinataConfig } from 'arcraft';
 import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
@@ -1005,7 +1132,9 @@ async function createTypedNFT(imageFile: File): Promise<void> {
 }`}</code>
       </pre>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Error Handling with Types</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Error Handling with Types
+      </h3>
       <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto mb-6">
         <code>{`import { Arc82ParseError, Arc82QueryError } from 'arcraft';
 
@@ -1034,15 +1163,28 @@ try {
       </pre>
 
       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-indigo-900 mb-3">📚 Complete TypeDoc Documentation</h3>
+        <h3 className="text-lg font-semibold text-indigo-900 mb-3">
+          📚 Complete TypeDoc Documentation
+        </h3>
         <p className="text-indigo-800 mb-3">
-          Every function, class, and interface in Arcraft has comprehensive TypeDoc documentation:
+          Every function, class, and interface in Arcraft has comprehensive
+          TypeDoc documentation:
         </p>
         <ul className="text-indigo-700 text-sm space-y-1">
-          <li>• <strong>Function signatures</strong> with parameter and return type descriptions</li>
-          <li>• <strong>Usage examples</strong> for complex operations</li>
-          <li>• <strong>Error documentation</strong> with @throws tags</li>
-          <li>• <strong>Cross-references</strong> between related types and functions</li>
+          <li>
+            • <strong>Function signatures</strong> with parameter and return
+            type descriptions
+          </li>
+          <li>
+            • <strong>Usage examples</strong> for complex operations
+          </li>
+          <li>
+            • <strong>Error documentation</strong> with @throws tags
+          </li>
+          <li>
+            • <strong>Cross-references</strong> between related types and
+            functions
+          </li>
         </ul>
         <div className="mt-4">
           <a
@@ -1072,9 +1214,10 @@ function CrossPlatformSection() {
           🚀 Universal SDK
         </h3>
         <p className="text-green-800 leading-relaxed">
-          Arcraft is designed to work seamlessly across all JavaScript environments. Whether you're building 
-          a Node.js backend, a React web application, or a React Native mobile app, Arcraft provides 
-          the same consistent API with automatic platform detection and optimization.
+          Arcraft is designed to work seamlessly across all JavaScript
+          environments. Whether you're building a Node.js backend, a React web
+          application, or a React Native mobile app, Arcraft provides the same
+          consistent API with automatic platform detection and optimization.
         </p>
       </div>
 
@@ -1085,11 +1228,23 @@ function CrossPlatformSection() {
             Node.js Server
           </h3>
           <ul className="text-blue-800 text-sm space-y-2">
-            <li>• <strong>File system access</strong> - Direct file path support</li>
-            <li>• <strong>Environment variables</strong> - Secure configuration management</li>
-            <li>• <strong>Async/await</strong> - Modern asynchronous operations</li>
-            <li>• <strong>ES modules</strong> - Full ES6 module support</li>
-            <li>• <strong>Buffer handling</strong> - Native Node.js buffer operations</li>
+            <li>
+              • <strong>File system access</strong> - Direct file path support
+            </li>
+            <li>
+              • <strong>Environment variables</strong> - Secure configuration
+              management
+            </li>
+            <li>
+              • <strong>Async/await</strong> - Modern asynchronous operations
+            </li>
+            <li>
+              • <strong>ES modules</strong> - Full ES6 module support
+            </li>
+            <li>
+              • <strong>Buffer handling</strong> - Native Node.js buffer
+              operations
+            </li>
           </ul>
         </div>
 
@@ -1099,11 +1254,21 @@ function CrossPlatformSection() {
             Browser/Web
           </h3>
           <ul className="text-purple-800 text-sm space-y-2">
-            <li>• <strong>File objects</strong> - HTML5 File API integration</li>
-            <li>• <strong>Drag & drop</strong> - File upload via drag and drop</li>
-            <li>• <strong>Web Crypto API</strong> - Browser-native cryptography</li>
-            <li>• <strong>Fetch API</strong> - Modern HTTP requests</li>
-            <li>• <strong>LocalStorage</strong> - Client-side data persistence</li>
+            <li>
+              • <strong>File objects</strong> - HTML5 File API integration
+            </li>
+            <li>
+              • <strong>Drag & drop</strong> - File upload via drag and drop
+            </li>
+            <li>
+              • <strong>Web Crypto API</strong> - Browser-native cryptography
+            </li>
+            <li>
+              • <strong>Fetch API</strong> - Modern HTTP requests
+            </li>
+            <li>
+              • <strong>LocalStorage</strong> - Client-side data persistence
+            </li>
           </ul>
         </div>
 
@@ -1113,20 +1278,35 @@ function CrossPlatformSection() {
             React Native
           </h3>
           <ul className="text-cyan-800 text-sm space-y-2">
-            <li>• <strong>Mobile optimization</strong> - Optimized for mobile devices</li>
-            <li>• <strong>Image picker</strong> - Camera and gallery integration</li>
-            <li>• <strong>Async storage</strong> - Persistent mobile storage</li>
-            <li>• <strong>Network detection</strong> - Handle connectivity changes</li>
-            <li>• <strong>Performance</strong> - Lightweight and fast operations</li>
+            <li>
+              • <strong>Mobile optimization</strong> - Optimized for mobile
+              devices
+            </li>
+            <li>
+              • <strong>Image picker</strong> - Camera and gallery integration
+            </li>
+            <li>
+              • <strong>Async storage</strong> - Persistent mobile storage
+            </li>
+            <li>
+              • <strong>Network detection</strong> - Handle connectivity changes
+            </li>
+            <li>
+              • <strong>Performance</strong> - Lightweight and fast operations
+            </li>
           </ul>
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Platform-Specific Examples</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Platform-Specific Examples
+      </h3>
 
       <div className="space-y-6">
         <div>
-          <h4 className="text-lg font-semibold text-gray-900 mb-3">Node.js Backend</h4>
+          <h4 className="text-lg font-semibold text-gray-900 mb-3">
+            Node.js Backend
+          </h4>
           <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
             <code>{`// Node.js server example
 import { Arc3, IPFS } from 'arcraft';
@@ -1156,7 +1336,9 @@ const result = await Arc3.create({
         </div>
 
         <div>
-          <h4 className="text-lg font-semibold text-gray-900 mb-3">React Web Application</h4>
+          <h4 className="text-lg font-semibold text-gray-900 mb-3">
+            React Web Application
+          </h4>
           <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
             <code>{`// React web app example
 import { Arc3, IPFS } from 'arcraft';
@@ -1206,7 +1388,9 @@ function NFTCreator() {
         </div>
 
         <div>
-          <h4 className="text-lg font-semibold text-gray-900 mb-3">React Native Mobile App</h4>
+          <h4 className="text-lg font-semibold text-gray-900 mb-3">
+            React Native Mobile App
+          </h4>
           <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
             <code>{`// React Native mobile app example
 import { Arc3, IPFS } from 'arcraft';
@@ -1252,9 +1436,12 @@ const createMobileNFT = async () => {
       </div>
 
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mt-8">
-        <h3 className="text-lg font-semibold text-yellow-900 mb-3">🔧 Automatic Platform Detection</h3>
+        <h3 className="text-lg font-semibold text-yellow-900 mb-3">
+          🔧 Automatic Platform Detection
+        </h3>
         <p className="text-yellow-800 mb-3">
-          Arcraft automatically detects the runtime environment and adapts its behavior:
+          Arcraft automatically detects the runtime environment and adapts its
+          behavior:
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-yellow-800 text-sm">
           <div>
@@ -1431,164 +1618,304 @@ function APISection() {
           🔧 Complete API Documentation
         </h3>
         <p className="text-indigo-800 leading-relaxed">
-          Comprehensive API reference for all classes, functions, and interfaces in the Arcraft SDK. 
-          Every method is fully documented with parameters, return types, and usage examples.
+          Comprehensive API reference for all classes, functions, and interfaces
+          in the Arcraft SDK. Every method is fully documented with parameters,
+          return types, and usage examples.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">Core Classes</h3>
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">
+            Core Classes
+          </h3>
           <ul className="text-blue-800 text-sm space-y-1">
-            <li>• <code>Arc3</code> - ARC-3 NFT operations</li>
-            <li>• <code>Arc19</code> - ARC-19 updatable NFTs</li>
-            <li>• <code>Arc69</code> - ARC-69 embedded metadata</li>
-            <li>• <code>Arc82</code> - Blockchain queries</li>
-            <li>• <code>IPFS</code> - Decentralized storage</li>
-            <li>• <code>CoreAsset</code> - Base asset functionality</li>
+            <li>
+              • <code>Arc3</code> - ARC-3 NFT operations
+            </li>
+            <li>
+              • <code>Arc19</code> - ARC-19 updatable NFTs
+            </li>
+            <li>
+              • <code>Arc69</code> - ARC-69 embedded metadata
+            </li>
+            <li>
+              • <code>Arc82</code> - Blockchain queries
+            </li>
+            <li>
+              • <code>IPFS</code> - Decentralized storage
+            </li>
+            <li>
+              • <code>CoreAsset</code> - Base asset functionality
+            </li>
           </ul>
         </div>
 
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-green-900 mb-3">Utility Functions</h3>
+          <h3 className="text-lg font-semibold text-green-900 mb-3">
+            Utility Functions
+          </h3>
           <ul className="text-green-800 text-sm space-y-1">
-            <li>• <code>uploadToPinata</code> - Direct Pinata upload</li>
-            <li>• <code>uploadToFilebase</code> - Direct Filebase upload</li>
-            <li>• <code>calculateSHA256</code> - Hash calculation</li>
-            <li>• <code>getAlgodClient</code> - Algorand client</li>
-            <li>• <code>getIndexerClient</code> - Indexer client</li>
-            <li>• <code>lookupFromFile</code> - MIME type detection</li>
+            <li>
+              • <code>uploadToPinata</code> - Direct Pinata upload
+            </li>
+            <li>
+              • <code>uploadToFilebase</code> - Direct Filebase upload
+            </li>
+            <li>
+              • <code>calculateSHA256</code> - Hash calculation
+            </li>
+            <li>
+              • <code>getAlgodClient</code> - Algorand client
+            </li>
+            <li>
+              • <code>getIndexerClient</code> - Indexer client
+            </li>
+            <li>
+              • <code>lookupFromFile</code> - MIME type detection
+            </li>
           </ul>
         </div>
 
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-purple-900 mb-3">Type Definitions</h3>
+          <h3 className="text-lg font-semibold text-purple-900 mb-3">
+            Type Definitions
+          </h3>
           <ul className="text-purple-800 text-sm space-y-1">
-            <li>• <code>Network</code> - Network types</li>
-            <li>• <code>PinataConfig</code> - Pinata configuration</li>
-            <li>• <code>FilebaseConfig</code> - Filebase configuration</li>
-            <li>• <code>Arc3CreateOptions</code> - Creation options</li>
-            <li>• <code>Arc3Metadata</code> - Metadata structure</li>
-            <li>• <code>ParsedAlgorandUri</code> - Parsed URI data</li>
+            <li>
+              • <code>Network</code> - Network types
+            </li>
+            <li>
+              • <code>PinataConfig</code> - Pinata configuration
+            </li>
+            <li>
+              • <code>FilebaseConfig</code> - Filebase configuration
+            </li>
+            <li>
+              • <code>Arc3CreateOptions</code> - Creation options
+            </li>
+            <li>
+              • <code>Arc3Metadata</code> - Metadata structure
+            </li>
+            <li>
+              • <code>ParsedAlgorandUri</code> - Parsed URI data
+            </li>
           </ul>
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">🎨 Arc3 Class</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        🎨 Arc3 Class
+      </h3>
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
         <h4 className="font-semibold text-gray-900 mb-3">Static Methods</h4>
         <div className="space-y-4">
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc3.create(options: Arc3CreateOptions)</code>
-            <p className="text-sm text-gray-600 mt-1">Creates a new ARC-3 compliant NFT with external metadata storage.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc3.create(options: Arc3CreateOptions)
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Creates a new ARC-3 compliant NFT with external metadata storage.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc3.fromId(assetId: number, network: Network)</code>
-            <p className="text-sm text-gray-600 mt-1">Loads an existing ARC-3 NFT by asset ID and validates compliance.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc3.fromId(assetId: number, network: Network)
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Loads an existing ARC-3 NFT by asset ID and validates compliance.
+            </p>
           </div>
         </div>
-        
-        <h4 className="font-semibold text-gray-900 mb-3 mt-6">Instance Methods</h4>
+
+        <h4 className="font-semibold text-gray-900 mb-3 mt-6">
+          Instance Methods
+        </h4>
         <div className="space-y-4">
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">getMetadata(): Arc3Metadata | null</code>
-            <p className="text-sm text-gray-600 mt-1">Returns the parsed ARC-3 metadata or null if not available.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              getMetadata(): Arc3Metadata | null
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Returns the parsed ARC-3 metadata or null if not available.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">getImageUrl(): string | null</code>
-            <p className="text-sm text-gray-600 mt-1">Extracts and returns the image URL from metadata.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              getImageUrl(): string | null
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Extracts and returns the image URL from metadata.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">getImageBase64(): Promise&lt;string | null&gt;</code>
-            <p className="text-sm text-gray-600 mt-1">Downloads and converts the image to base64 format.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              getImageBase64(): Promise&lt;string | null&gt;
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Downloads and converts the image to base64 format.
+            </p>
           </div>
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">🔄 Arc19 Class</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        🔄 Arc19 Class
+      </h3>
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
         <h4 className="font-semibold text-gray-900 mb-3">Static Methods</h4>
         <div className="space-y-4">
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc19.create(options: Arc19CreateOptions)</code>
-            <p className="text-sm text-gray-600 mt-1">Creates a new ARC-19 NFT with template-based IPFS URIs for updatable metadata.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc19.create(options: Arc19CreateOptions)
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Creates a new ARC-19 NFT with template-based IPFS URIs for
+              updatable metadata.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc19.update(options: Arc19UpdateOptions)</code>
-            <p className="text-sm text-gray-600 mt-1">Updates the metadata of an existing ARC-19 NFT by changing the reserve address.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc19.update(options: Arc19UpdateOptions)
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Updates the metadata of an existing ARC-19 NFT by changing the
+              reserve address.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc19.getMetadataVersions(assetId: number, network: Network)</code>
-            <p className="text-sm text-gray-600 mt-1">Retrieves all metadata versions for tracking update history.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc19.getMetadataVersions(assetId: number, network: Network)
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Retrieves all metadata versions for tracking update history.
+            </p>
           </div>
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">📝 Arc69 Class</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        📝 Arc69 Class
+      </h3>
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
         <h4 className="font-semibold text-gray-900 mb-3">Static Methods</h4>
         <div className="space-y-4">
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc69.create(options: Arc69CreateOptions)</code>
-            <p className="text-sm text-gray-600 mt-1">Creates an ARC-69 NFT with metadata embedded in transaction notes.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc69.create(options: Arc69CreateOptions)
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Creates an ARC-69 NFT with metadata embedded in transaction notes.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc69.update(options: Arc69UpdateOptions)</code>
-            <p className="text-sm text-gray-600 mt-1">Updates ARC-69 metadata by creating a new transaction with updated notes.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc69.update(options: Arc69UpdateOptions)
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Updates ARC-69 metadata by creating a new transaction with updated
+              notes.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc69.hasValidMetadata(assetId: number, network: Network)</code>
-            <p className="text-sm text-gray-600 mt-1">Checks if an asset has valid ARC-69 metadata in its transaction history.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc69.hasValidMetadata(assetId: number, network: Network)
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Checks if an asset has valid ARC-69 metadata in its transaction
+              history.
+            </p>
           </div>
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">🔍 Arc82 Class</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        🔍 Arc82 Class
+      </h3>
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
         <h4 className="font-semibold text-gray-900 mb-3">Static Methods</h4>
         <div className="space-y-4">
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc82.parse(uri: string): ParsedAlgorandUri</code>
-            <p className="text-sm text-gray-600 mt-1">Parses an ARC-82 URI into structured query parameters.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc82.parse(uri: string): ParsedAlgorandUri
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Parses an ARC-82 URI into structured query parameters.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc82.queryApplication(parsed: ParsedAlgorandUri, network: Network)</code>
-            <p className="text-sm text-gray-600 mt-1">Executes blockchain queries for application data including box storage and global state.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc82.queryApplication(parsed: ParsedAlgorandUri, network:
+              Network)
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Executes blockchain queries for application data including box
+              storage and global state.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc82.buildAppUri(appId: number, params: AppQueryParams): string</code>
-            <p className="text-sm text-gray-600 mt-1">Constructs ARC-82 compliant URIs for application queries.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc82.buildAppUri(appId: number, params: AppQueryParams): string
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Constructs ARC-82 compliant URIs for application queries.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">Arc82.encodeBase64Url(input: string): string</code>
-            <p className="text-sm text-gray-600 mt-1">Encodes strings to base64url format for URI parameters.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              Arc82.encodeBase64Url(input: string): string
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Encodes strings to base64url format for URI parameters.
+            </p>
           </div>
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">🗄️ IPFS Class</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        🗄️ IPFS Class
+      </h3>
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-        <h4 className="font-semibold text-gray-900 mb-3">Constructor & Methods</h4>
+        <h4 className="font-semibold text-gray-900 mb-3">
+          Constructor & Methods
+        </h4>
         <div className="space-y-4">
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">new IPFS(provider: string, config: PinataConfig | FilebaseConfig)</code>
-            <p className="text-sm text-gray-600 mt-1">Creates an IPFS instance with the specified provider configuration.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              new IPFS(provider: string, config: PinataConfig | FilebaseConfig)
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Creates an IPFS instance with the specified provider
+              configuration.
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">upload(file: File | string, name?: string): Promise&lt;string&gt;</code>
-            <p className="text-sm text-gray-600 mt-1">Uploads a file to IPFS and returns the content identifier (CID).</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              upload(file: File | string, name?: string): Promise&lt;string&gt;
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Uploads a file to IPFS and returns the content identifier (CID).
+            </p>
           </div>
           <div>
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">uploadJson(data: object, name?: string): Promise&lt;string&gt;</code>
-            <p className="text-sm text-gray-600 mt-1">Uploads JSON data to IPFS and returns the CID.</p>
+            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+              uploadJson(data: object, name?: string): Promise&lt;string&gt;
+            </code>
+            <p className="text-sm text-gray-600 mt-1">
+              Uploads JSON data to IPFS and returns the CID.
+            </p>
           </div>
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">📋 Usage Examples</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        📋 Usage Examples
+      </h3>
       <div className="space-y-6">
         <div>
-          <h4 className="font-semibold text-gray-900 mb-3">Complete NFT Creation Flow</h4>
+          <h4 className="font-semibold text-gray-900 mb-3">
+            Complete NFT Creation Flow
+          </h4>
           <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
             <code>{`import { Arc3, IPFS, Network } from 'arcraft';
 import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
@@ -1636,7 +1963,9 @@ console.log('NFT Metadata:', metadata);`}</code>
         </div>
 
         <div>
-          <h4 className="font-semibold text-gray-900 mb-3">Advanced ARC-82 Queries</h4>
+          <h4 className="font-semibold text-gray-900 mb-3">
+            Advanced ARC-82 Queries
+          </h4>
           <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
             <code>{`import { Arc82 } from 'arcraft';
 
@@ -1683,23 +2012,99 @@ if (result.success) {
       </div>
 
       <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6 mt-8">
-        <h3 className="text-lg font-semibold text-emerald-900 mb-3">🔗 Additional Resources</h3>
+        <h3 className="text-lg font-semibold text-emerald-900 mb-3">
+          🔗 Additional Resources
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h4 className="font-semibold text-emerald-800 mb-2">Documentation</h4>
+            <h4 className="font-semibold text-emerald-800 mb-2">
+              Documentation
+            </h4>
             <ul className="text-emerald-700 text-sm space-y-1">
-              <li>• <a href="https://satishccy.github.io/arcraft/" target="_blank" rel="noopener noreferrer" className="underline">Full TypeDoc API Reference</a></li>
-              <li>• <a href="https://github.com/satishccy/arcraft" target="_blank" rel="noopener noreferrer" className="underline">GitHub Repository</a></li>
-              <li>• <a href="https://www.npmjs.com/package/arcraft" target="_blank" rel="noopener noreferrer" className="underline">NPM Package</a></li>
+              <li>
+                •{' '}
+                <a
+                  href="https://satishccy.github.io/arcraft/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  Full TypeDoc API Reference
+                </a>
+              </li>
+              <li>
+                •{' '}
+                <a
+                  href="https://github.com/satishccy/arcraft"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  GitHub Repository
+                </a>
+              </li>
+              <li>
+                •{' '}
+                <a
+                  href="https://www.npmjs.com/package/arcraft"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  NPM Package
+                </a>
+              </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-emerald-800 mb-2">ARC Standards</h4>
+            <h4 className="font-semibold text-emerald-800 mb-2">
+              ARC Standards
+            </h4>
             <ul className="text-emerald-700 text-sm space-y-1">
-              <li>• <a href="https://arc.algorand.foundation/ARCs/arc-0003" target="_blank" rel="noopener noreferrer" className="underline">ARC-3 Specification</a></li>
-              <li>• <a href="https://arc.algorand.foundation/ARCs/arc-0019" target="_blank" rel="noopener noreferrer" className="underline">ARC-19 Specification</a></li>
-              <li>• <a href="https://arc.algorand.foundation/ARCs/arc-0069" target="_blank" rel="noopener noreferrer" className="underline">ARC-69 Specification</a></li>
-              <li>• <a href="https://arc.algorand.foundation/ARCs/arc-0082" target="_blank" rel="noopener noreferrer" className="underline">ARC-82 Specification</a></li>
+              <li>
+                •{' '}
+                <a
+                  href="https://arc.algorand.foundation/ARCs/arc-0003"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  ARC-3 Specification
+                </a>
+              </li>
+              <li>
+                •{' '}
+                <a
+                  href="https://arc.algorand.foundation/ARCs/arc-0019"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  ARC-19 Specification
+                </a>
+              </li>
+              <li>
+                •{' '}
+                <a
+                  href="https://arc.algorand.foundation/ARCs/arc-0069"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  ARC-69 Specification
+                </a>
+              </li>
+              <li>
+                •{' '}
+                <a
+                  href="https://arc.algorand.foundation/ARCs/arc-0082"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  ARC-82 Specification
+                </a>
+              </li>
             </ul>
           </div>
         </div>

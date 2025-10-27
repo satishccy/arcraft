@@ -744,7 +744,9 @@ export class Arc82 {
                     availableLocalState.value.type === 1 ? 'bytes' : 'uint',
                   decodedValue:
                     availableLocalState.value.type === 1
-                      ? new TextDecoder().decode(availableLocalState.value.bytes)
+                      ? new TextDecoder().decode(
+                          availableLocalState.value.bytes
+                        )
                       : undefined,
                   exists: true,
                   isOptedIn: true,

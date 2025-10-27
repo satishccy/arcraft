@@ -4,6 +4,7 @@
  */
 
 import { Network, NetworkConfig } from './types';
+import algosdk from 'algosdk';
 
 /**
  * Network configurations for different Algorand networks
@@ -56,4 +57,22 @@ const networks: Record<Network, NetworkConfig> = {
  */
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 
-export { networks, IPFS_GATEWAY };
+/**
+ * Read account address which is funded on all networks (except localnet) for simulation
+ */
+const READ_ACCOUNT =
+  'A7NMWS3NT3IUDMLVO26ULGXGIIOUQ3ND2TXSER6EBGRZNOBOUIQXHIBGDE';
+
+/**
+ * Simulate request for simulation of transactions
+ */
+const simulateRequest = new algosdk.modelsv2.SimulateRequest({
+  allowEmptySignatures: true,
+  allowMoreLogging: true,
+  allowUnnamedResources: true,
+  fixSigners: true,
+  extraOpcodeBudget: 320000,
+  txnGroups: [],
+});
+
+export { networks, IPFS_GATEWAY, READ_ACCOUNT, simulateRequest };

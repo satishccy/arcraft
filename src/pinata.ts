@@ -238,7 +238,7 @@ async function uploadJsonToPinata({
   try {
     const data = JSON.stringify({
       pinataContent: json,
-      pinataMetadata: { name: name || "metadata.json" },
+      pinataMetadata: { name: name || 'metadata.json' },
     });
 
     const res = await axios.post(

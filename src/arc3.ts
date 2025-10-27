@@ -278,7 +278,12 @@ class Arc3 extends CoreAsset {
 
     let blob: Blob;
     if (typeof image.file === 'string') {
-      blob = new Blob([await fs.promises.readFile(image.file)], {
+      const buffer = await fs.promises.readFile(image.file);
+      const arrayBuffer = buffer.buffer.slice(
+        buffer.byteOffset,
+        buffer.byteOffset + buffer.byteLength
+      ) as ArrayBuffer;
+      blob = new Blob([arrayBuffer], {
         type: mimeType,
       });
     } else {
@@ -308,7 +313,7 @@ class Arc3 extends CoreAsset {
     const client = getAlgodClient(network);
     const atc = new AtomicTransactionComposer();
     const sp = await client.getTransactionParams().do();
-    
+
     atc.addTransaction({
       txn: algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
         sender: creator.address,

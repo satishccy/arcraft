@@ -45,19 +45,19 @@ export class AssetFactory {
     if (Arc3.isArc3(assetParams.name || '', assetParams.url || '', id)) {
       return await Arc3.fromAssetParams(id, assetParams, network);
     }
-    
+
     // Check for ARC-19 compliance
     if (Arc19.isArc19(assetParams.url || '')) {
       return await Arc19.fromAssetParams(id, assetParams, network);
     }
-    
+
     // Check for ARC-69 compliance (requires network call)
     const isArc69 = await Arc69.isArc69(assetParams.url || '', id, network);
     console.log('isArc69', isArc69);
     if (isArc69) {
       return await Arc69.fromAssetParams(id, assetParams, network);
     }
-    
+
     // Default to CoreAsset if no ARC standard is detected
     return new CoreAsset(id, assetParams, network);
   }
@@ -68,21 +68,24 @@ export class AssetFactory {
    * @param network - The Algorand network
    * @returns The ARC standard type or 'unknown'
    */
-  static async getArcType(id: number, network: Network): Promise<'arc3' | 'arc19' | 'arc69' | 'unknown'> {
+  static async getArcType(
+    id: number,
+    network: Network
+  ): Promise<'arc3' | 'arc19' | 'arc69' | 'unknown'> {
     const assetParams = await CoreAsset.fetchAssetParams(id, network);
-    
+
     if (Arc3.isArc3(assetParams.name || '', assetParams.url || '', id)) {
       return 'arc3';
     }
-    
+
     if (Arc19.isArc19(assetParams.url || '')) {
       return 'arc19';
     }
-    
+
     if (await Arc69.isArc69(assetParams.url || '', id, network)) {
       return 'arc69';
     }
-    
+
     return 'unknown';
   }
 }

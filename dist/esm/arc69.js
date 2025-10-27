@@ -229,7 +229,9 @@ export class Arc69 extends CoreAsset {
             : lookupFromFile(image.file);
         let blob;
         if (typeof image.file === 'string') {
-            blob = new Blob([await fs.promises.readFile(image.file)], {
+            const buffer = await fs.promises.readFile(image.file);
+            const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+            blob = new Blob([arrayBuffer], {
                 type: mimeType,
             });
         }

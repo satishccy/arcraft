@@ -318,7 +318,12 @@ export class Arc69 extends CoreAsset {
         : lookupFromFile(image.file);
     let blob: Blob;
     if (typeof image.file === 'string') {
-      blob = new Blob([await fs.promises.readFile(image.file)], {
+      const buffer = await fs.promises.readFile(image.file);
+      const arrayBuffer = buffer.buffer.slice(
+        buffer.byteOffset,
+        buffer.byteOffset + buffer.byteLength
+      ) as ArrayBuffer;
+      blob = new Blob([arrayBuffer], {
         type: mimeType,
       });
     } else {
@@ -337,7 +342,7 @@ export class Arc69 extends CoreAsset {
       properties: properties,
     };
 
-    console.log(freeze,reserve,clawback,"metadata");
+    console.log(freeze, reserve, clawback, 'metadata');
 
     const client = getAlgodClient(network);
     const atc = new AtomicTransactionComposer();

@@ -1,9 +1,12 @@
-import { Arc82, Arc82Utils } from "arcraft";
+import { Arc82, Arc82Utils } from 'arcraft';
 
 async function main() {
   const arc82Uri = Arc82.buildAppUri(739833611, {
-    global: [Arc82.encodeBase64Url("bWFuYWdlcg==")],
-    box: [Arc82.encodeBase64Url("bQAAAAArzZHW"), Arc82.encodeBase64Url("AAAAACV9JpE=")],
+    global: [Arc82.encodeBase64Url('bWFuYWdlcg==')],
+    box: [
+      Arc82.encodeBase64Url('bQAAAAArzZHW'),
+      Arc82.encodeBase64Url('AAAAACV9JpE='),
+    ],
   }); // arc82Uri algorand://app/739833611?box=YlFBQUFBQXJ6WkhX&global=YldGdVlXZGxjZz09
   console.log(`arc82Uri: ${arc82Uri}\n`);
 
@@ -28,7 +31,7 @@ async function main() {
   // }
   console.log(`parsed: ${JSON.stringify(parsed, null, 2)}\n`);
 
-  const query = await Arc82.queryApplication(parsed, "testnet"); // or const query2 = await Arc82.queryFromUri(arc82Uri, "testnet");
+  const query = await Arc82.queryApplication(parsed, 'testnet'); // or const query2 = await Arc82.queryFromUri(arc82Uri, "testnet");
 
   console.log(`query: ${JSON.stringify(query, null, 2)}\n`);
   // query {

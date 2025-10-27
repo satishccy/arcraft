@@ -30,7 +30,7 @@ export function MetadataTracker() {
   const [assetId, setAssetId] = useState('');
   const [isTracking, setIsTracking] = useState(false);
   const [result, setResult] = useState<TrackerResult | null>(null);
-  const {activeNetwork} = useNetwork();
+  const { activeNetwork } = useNetwork();
 
   const trackMetadata = async () => {
     try {
@@ -46,8 +46,11 @@ export function MetadataTracker() {
       let trackerResult: TrackerResult | null = null;
 
       try {
-        const arc19Versions = await Arc19.getMetadataVersions(id, activeNetwork as Network);
-        console.log(arc19Versions, "arc19Versions");
+        const arc19Versions = await Arc19.getMetadataVersions(
+          id,
+          activeNetwork as Network
+        );
+        console.log(arc19Versions, 'arc19Versions');
         if (arc19Versions && arc19Versions.length > 0) {
           const arc19Asset = await Arc19.fromId(id, activeNetwork as Network);
           trackerResult = {
@@ -70,8 +73,11 @@ export function MetadataTracker() {
       // If not ARC-19, try ARC-69
       if (!trackerResult) {
         try {
-          const arc69Versions = await Arc69.getMetadataVersions(id, activeNetwork as Network);
-          console.log(arc69Versions, "arc69Versions");
+          const arc69Versions = await Arc69.getMetadataVersions(
+            id,
+            activeNetwork as Network
+          );
+          console.log(arc69Versions, 'arc69Versions');
           if (arc69Versions && arc69Versions.length > 0) {
             const arc69Asset = await Arc69.fromId(id, activeNetwork as Network);
             trackerResult = {
@@ -195,9 +201,15 @@ export function MetadataTracker() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold text-gray-900">
-                      Asset <IdLink id={result.assetId} type="asset" network={activeNetwork as Network}>
+                      Asset{' '}
+                      <IdLink
+                        id={result.assetId}
+                        type="asset"
+                        network={activeNetwork as Network}
+                      >
                         {result.assetId}
-                      </IdLink> Metadata History
+                      </IdLink>{' '}
+                      Metadata History
                     </h2>
                     <span
                       className={`px-3 py-1 text-sm font-medium rounded-full ${
@@ -311,7 +323,12 @@ export function MetadataTracker() {
                               <span className="font-medium text-gray-700">
                                 Transaction ID:
                               </span>
-                              <IdLink id={version.transactionId} type="tx" network={activeNetwork as Network} className="ml-2 font-mono text-xs break-all">
+                              <IdLink
+                                id={version.transactionId}
+                                type="tx"
+                                network={activeNetwork as Network}
+                                className="ml-2 font-mono text-xs break-all"
+                              >
                                 {version.transactionId}
                               </IdLink>
                             </div>

@@ -1,17 +1,17 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef } from 'react';
 import {
   PhotoIcon,
   CloudArrowUpIcon,
   CheckCircleIcon,
-} from "@heroicons/react/24/outline";
-import { Arc3, Arc19, Arc69, IPFS } from "arcraft";
-import { type Network } from "arcraft";
-import { useNetwork, useWallet } from "@txnlab/use-wallet-react";
-import { showSuccessToast, showErrorToast } from "../utils/toast";
-import { IdLink } from "../utils/linkUtils";
+} from '@heroicons/react/24/outline';
+import { Arc3, Arc19, Arc69, IPFS } from 'arcraft';
+import { type Network } from 'arcraft';
+import { useNetwork, useWallet } from '@txnlab/use-wallet-react';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { IdLink } from '../utils/linkUtils';
 
-type ARCStandard = "arc3" | "arc19" | "arc69";
-type IPFSProvider = "pinata" | "filebase";
+type ARCStandard = 'arc3' | 'arc19' | 'arc69';
+type IPFSProvider = 'pinata' | 'filebase';
 
 interface FormData {
   // Basic NFT Info
@@ -49,15 +49,15 @@ interface FormData {
 
 export function NFTCreate() {
   const [formData, setFormData] = useState<FormData>({
-    name: "",
-    unitName: "",
-    description: "",
-    arcStandard: "arc3",
-    ipfsProvider: "pinata",
-    pinataJWT: "",
-    filebaseToken: "",
+    name: '',
+    unitName: '',
+    description: '',
+    arcStandard: 'arc3',
+    ipfsProvider: 'pinata',
+    pinataJWT: '',
+    filebaseToken: '',
     properties: {},
-    attributes: [{ trait_type: "", value: "" }],
+    attributes: [{ trait_type: '', value: '' }],
     total: 1,
     decimals: 0,
     defaultFrozen: false,
@@ -65,21 +65,21 @@ export function NFTCreate() {
     managerEnabled: false,
     freezeEnabled: false,
     clawbackEnabled: false,
-    reserveAddress: "",
-    managerAddress: "",
-    freezeAddress: "",
-    clawbackAddress: "",
+    reserveAddress: '',
+    managerAddress: '',
+    freezeAddress: '',
+    clawbackAddress: '',
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [previewUrl, setPreviewUrl] = useState<string>('');
   const [isCreating, setIsCreating] = useState(false);
   const [result, setResult] = useState<{
     transactionId: string;
     assetId: number;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { activeAddress,transactionSigner } = useWallet();
+  const { activeAddress, transactionSigner } = useWallet();
   const { activeNetwork } = useNetwork();
 
   const handleFileSelect = (file: File) => {
@@ -91,7 +91,7 @@ export function NFTCreate() {
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
+    if (file && file.type.startsWith('image/')) {
       handleFileSelect(file);
     }
   };
@@ -99,7 +99,7 @@ export function NFTCreate() {
   const addAttribute = () => {
     setFormData((prev) => ({
       ...prev,
-      attributes: [...prev.attributes, { trait_type: "", value: "" }],
+      attributes: [...prev.attributes, { trait_type: '', value: '' }],
     }));
   };
 
@@ -112,7 +112,7 @@ export function NFTCreate() {
 
   const updateAttribute = (
     index: number,
-    field: "trait_type" | "value",
+    field: 'trait_type' | 'value',
     value: string
   ) => {
     setFormData((prev) => ({
@@ -129,44 +129,44 @@ export function NFTCreate() {
       setResult(null);
 
       if (!selectedFile) {
-        showErrorToast("Please select an image file");
+        showErrorToast('Please select an image file');
         return;
       }
 
       if (!activeAddress) {
-        showErrorToast("Please connect your wallet");
+        showErrorToast('Please connect your wallet');
         return;
       }
 
       if (!formData.name || !formData.unitName) {
-        showErrorToast("Please fill in all required fields");
+        showErrorToast('Please fill in all required fields');
         return;
       }
 
-      if (formData.ipfsProvider === "pinata" && !formData.pinataJWT) {
-        showErrorToast("Please enter your Pinata JWT token");
+      if (formData.ipfsProvider === 'pinata' && !formData.pinataJWT) {
+        showErrorToast('Please enter your Pinata JWT token');
         return;
       }
 
-      if (formData.ipfsProvider === "filebase" && !formData.filebaseToken) {
-        showErrorToast("Please enter your Filebase API token");
+      if (formData.ipfsProvider === 'filebase' && !formData.filebaseToken) {
+        showErrorToast('Please enter your Filebase API token');
         return;
       }
 
-    //   const acc = getLocalAccount();
+      //   const acc = getLocalAccount();
 
       // Initialize IPFS
       const ipfsConfig =
-        formData.ipfsProvider === "pinata"
-          ? { provider: "pinata" as const, jwt: formData.pinataJWT }
-          : { provider: "filebase" as const, token: formData.filebaseToken };
+        formData.ipfsProvider === 'pinata'
+          ? { provider: 'pinata' as const, jwt: formData.pinataJWT }
+          : { provider: 'filebase' as const, token: formData.filebaseToken };
 
       const ipfs = new IPFS(formData.ipfsProvider, ipfsConfig);
 
-    //   const creator = {
-    //     address: acc.addr.toString(),
-    //     signer: algosdk.makeBasicAccountTransactionSigner(acc),
-    //   };
+      //   const creator = {
+      //     address: acc.addr.toString(),
+      //     signer: algosdk.makeBasicAccountTransactionSigner(acc),
+      //   };
 
       const creator = {
         address: activeAddress,
@@ -197,39 +197,39 @@ export function NFTCreate() {
         decimals: formData.decimals,
         defaultFrozen: formData.defaultFrozen,
         reserveAddress: formData.reserveEnabled
-          ? formData.reserveAddress === ""
+          ? formData.reserveAddress === ''
             ? undefined
             : formData.reserveAddress
           : undefined,
         managerAddress: formData.managerEnabled
-          ? formData.managerAddress === ""
+          ? formData.managerAddress === ''
             ? undefined
             : formData.managerAddress
           : undefined,
         freezeAddress: formData.freezeEnabled
-          ? formData.freezeAddress === ""
+          ? formData.freezeAddress === ''
             ? undefined
             : formData.freezeAddress
           : undefined,
         clawbackAddress: formData.clawbackEnabled
-          ? formData.clawbackAddress === ""
+          ? formData.clawbackAddress === ''
             ? undefined
             : formData.clawbackAddress
           : undefined,
       };
 
-      console.log(commonParams,"commonParams");
+      console.log(commonParams, 'commonParams');
 
       let nftResult;
 
       switch (formData.arcStandard) {
-        case "arc3":
+        case 'arc3':
           nftResult = await Arc3.create(commonParams);
           break;
-        case "arc19":
+        case 'arc19':
           nftResult = await Arc19.create(commonParams);
           break;
-        case "arc69":
+        case 'arc69':
           nftResult = await Arc69.create(commonParams);
           break;
         default:
@@ -237,10 +237,10 @@ export function NFTCreate() {
       }
 
       setResult(nftResult);
-      showSuccessToast("NFT created successfully");
+      showSuccessToast('NFT created successfully');
     } catch (err: any) {
       console.error(err);
-      showErrorToast(err.message || "Failed to create NFT");
+      showErrorToast(err.message || 'Failed to create NFT');
     } finally {
       setIsCreating(false);
     }
@@ -256,19 +256,19 @@ export function NFTCreate() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             {
-              key: "arc3",
-              name: "ARC-3",
-              desc: "External metadata on IPFS",
+              key: 'arc3',
+              name: 'ARC-3',
+              desc: 'External metadata on IPFS',
             },
             {
-              key: "arc19",
-              name: "ARC-19",
-              desc: "Template-based URIs, updatable",
+              key: 'arc19',
+              name: 'ARC-19',
+              desc: 'Template-based URIs, updatable',
             },
             {
-              key: "arc69",
-              name: "ARC-69",
-              desc: "Embedded metadata in notes",
+              key: 'arc69',
+              name: 'ARC-69',
+              desc: 'Embedded metadata in notes',
             },
           ].map((standard) => (
             <div
@@ -281,8 +281,8 @@ export function NFTCreate() {
               }
               className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
                 formData.arcStandard === standard.key
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <h4 className="font-semibold text-gray-900">{standard.name}</h4>
@@ -409,7 +409,7 @@ export function NFTCreate() {
                 type="text"
                 value={attr.trait_type}
                 onChange={(e) =>
-                  updateAttribute(index, "trait_type", e.target.value)
+                  updateAttribute(index, 'trait_type', e.target.value)
                 }
                 placeholder="Trait type"
                 className="input-field flex-1"
@@ -418,7 +418,7 @@ export function NFTCreate() {
                 type="text"
                 value={attr.value}
                 onChange={(e) =>
-                  updateAttribute(index, "value", e.target.value)
+                  updateAttribute(index, 'value', e.target.value)
                 }
                 placeholder="Value"
                 className="input-field flex-1"
@@ -459,7 +459,7 @@ export function NFTCreate() {
         </div>
 
         <div>
-          {formData.ipfsProvider === "pinata" ? (
+          {formData.ipfsProvider === 'pinata' ? (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Pinata JWT Token *
@@ -613,7 +613,7 @@ export function NFTCreate() {
             </>
           )}
         </div>
-        {formData.arcStandard === "arc3" && (
+        {formData.arcStandard === 'arc3' && (
           <div>
             <div className="flex items-center gap-2 mb-2">
               <input
@@ -815,13 +815,23 @@ export function NFTCreate() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <span className="font-medium text-gray-700">Asset ID:</span>
-              <IdLink id={result.assetId} type="asset" network={activeNetwork as Network} className="ml-2">
+              <IdLink
+                id={result.assetId}
+                type="asset"
+                network={activeNetwork as Network}
+                className="ml-2"
+              >
                 {result.assetId}
               </IdLink>
             </div>
             <div>
               <span className="font-medium text-gray-700">Transaction ID:</span>
-              <IdLink id={result.transactionId} type="tx" network={activeNetwork as Network} className="ml-2 break-all">
+              <IdLink
+                id={result.transactionId}
+                type="tx"
+                network={activeNetwork as Network}
+                className="ml-2 break-all"
+              >
                 {result.transactionId}
               </IdLink>
             </div>

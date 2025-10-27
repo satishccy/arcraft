@@ -85,7 +85,12 @@ const calculateSHA256 = async (data) => {
         try {
             const crypto = require('crypto');
             const hash = crypto.createHash('sha256');
-            hash.update(UniversalBuffer.from(data));
+            const buffer = buffer_1.Buffer.isBuffer(data)
+                ? data
+                : data instanceof Uint8Array
+                    ? buffer_1.Buffer.from(data)
+                    : buffer_1.Buffer.from(new Uint8Array(data));
+            hash.update(buffer);
             return hash.digest('hex');
         }
         catch (error) {
@@ -94,7 +99,17 @@ const calculateSHA256 = async (data) => {
     }
     // Browser environment - use Web Crypto API
     if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
-        const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+        let arrayBuffer;
+        if (data instanceof ArrayBuffer) {
+            arrayBuffer = data;
+        }
+        else if (ArrayBuffer.isView(data)) {
+            arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+        }
+        else {
+            arrayBuffer = new Uint8Array(data).buffer;
+        }
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', arrayBuffer);
         const hashArray = new Uint8Array(hashBuffer);
         const hashHex = Array.from(hashArray)
             .map((b) => b.toString(16).padStart(2, '0'))

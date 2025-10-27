@@ -1,20 +1,20 @@
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
-import { Navbar } from "./components/Navbar";
-import { Hero } from "./components/Hero";
-import { NFTCreator } from "./components/NFTCreator";
-import { NFTGallery } from "./components/NFTGallery";
-import { AssetExplorer } from "./components/AssetExplorer";
-import { MetadataTracker } from "./components/MetadataTracker";
-import { Documentation } from "./components/Documentation";
-import { Footer } from "./components/Footer";
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { Navbar } from './components/Navbar';
+import { Hero } from './components/Hero';
+import { NFTCreator } from './components/NFTCreator';
+import { NFTGallery } from './components/NFTGallery';
+import { AssetExplorer } from './components/AssetExplorer';
+import { MetadataTracker } from './components/MetadataTracker';
+import { Documentation } from './components/Documentation';
+import { Footer } from './components/Footer';
 import {
   WalletProvider,
   WalletManager,
   WalletId,
   NetworkId,
-} from "@txnlab/use-wallet-react";
-import { WalletUIProvider } from "@txnlab/use-wallet-ui-react";
-import { ToastContainer } from "react-toastify";
+} from '@txnlab/use-wallet-react';
+import { WalletUIProvider } from '@txnlab/use-wallet-ui-react';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   // const manager = new WalletManager({

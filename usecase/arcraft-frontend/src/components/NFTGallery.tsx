@@ -1,20 +1,11 @@
-import { useState, useEffect } from "react";
-import {
-  Arc3,
-  Arc19,
-  Arc69,
-  AssetFactory,
-  type Network,
-} from "arcraft";
-import {
-  MagnifyingGlassIcon,
-  FunnelIcon,
-} from "@heroicons/react/24/outline";
-import { useNetwork, useWallet } from "@txnlab/use-wallet-react";
-import { showErrorToast } from "../utils/toast";
-import { IdLink } from "../utils/linkUtils";
+import { useState, useEffect } from 'react';
+import { Arc3, Arc19, Arc69, AssetFactory, type Network } from 'arcraft';
+import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { useNetwork, useWallet } from '@txnlab/use-wallet-react';
+import { showErrorToast } from '../utils/toast';
+import { IdLink } from '../utils/linkUtils';
 
-type ARCStandard = "arc3" | "arc19" | "arc69" | "unknown";
+type ARCStandard = 'arc3' | 'arc19' | 'arc69' | 'unknown';
 
 interface NFTItem {
   assetId: number;
@@ -30,14 +21,14 @@ interface NFTItem {
 export function NFTGallery() {
   const [nfts, setNfts] = useState<NFTItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const { activeNetwork } = useNetwork();
   const { activeAddress, algodClient } = useWallet();
-  const [selectedStandard, setSelectedStandard] = useState<ARCStandard | "all">(
-    "all"
+  const [selectedStandard, setSelectedStandard] = useState<ARCStandard | 'all'>(
+    'all'
   );
-  const [assetIdInput, setAssetIdInput] = useState("");
-  const [batchAssetIds, setBatchAssetIds] = useState("");
+  const [assetIdInput, setAssetIdInput] = useState('');
+  const [batchAssetIds, setBatchAssetIds] = useState('');
 
   const loadNFT = async (assetId: number) => {
     try {
@@ -55,10 +46,10 @@ export function NFTGallery() {
 
       let nft: NFTItem = {
         assetId,
-        name: asset.getName() || "Unknown",
-        unitName: asset.getUnitName() || "Unknown",
-        creator: asset.getCreator() || "Unknown",
-        url: asset.getUrl() || "",
+        name: asset.getName() || 'Unknown',
+        unitName: asset.getUnitName() || 'Unknown',
+        creator: asset.getCreator() || 'Unknown',
+        url: asset.getUrl() || '',
         arcStandard: arcType,
       };
 
@@ -82,7 +73,7 @@ export function NFTGallery() {
         return [...prev, nft];
       });
     } catch (error: any) {
-      console.error("Failed to load NFT:", error);
+      console.error('Failed to load NFT:', error);
       showErrorToast(`Failed to load asset ${assetId}: ${error.message}`);
     } finally {
       setLoading(false);
@@ -92,22 +83,22 @@ export function NFTGallery() {
   const handleAddNFT = () => {
     const assetId = parseInt(assetIdInput);
     if (isNaN(assetId) || assetId <= 0) {
-      showErrorToast("Please enter a valid asset ID");
+      showErrorToast('Please enter a valid asset ID');
       return;
     }
 
     loadNFT(assetId);
-    setAssetIdInput("");
+    setAssetIdInput('');
   };
 
   const handleBatchLoad = async () => {
     const ids = batchAssetIds
-      .split(",")
+      .split(',')
       .map((id) => parseInt(id.trim()))
       .filter((id) => !isNaN(id) && id > 0);
 
     if (ids.length === 0) {
-      showErrorToast("Please enter valid asset IDs separated by commas");
+      showErrorToast('Please enter valid asset IDs separated by commas');
       return;
     }
 
@@ -120,7 +111,7 @@ export function NFTGallery() {
       }
     }
     setLoading(false);
-    setBatchAssetIds("");
+    setBatchAssetIds('');
   };
 
   const filteredNFTs = nfts.filter((nft) => {
@@ -130,7 +121,7 @@ export function NFTGallery() {
       nft.assetId.toString().includes(searchTerm);
 
     const matchesStandard =
-      selectedStandard === "all" || nft.arcStandard === selectedStandard;
+      selectedStandard === 'all' || nft.arcStandard === selectedStandard;
 
     return matchesSearch && matchesStandard;
   });
@@ -155,7 +146,7 @@ export function NFTGallery() {
     fetchUserNFTs();
   }, [activeNetwork, activeAddress, algodClient]);
 
-  console.log(nfts, "nfts");
+  console.log(nfts, 'nfts');
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -182,7 +173,7 @@ export function NFTGallery() {
                   onChange={(e) => setAssetIdInput(e.target.value)}
                   placeholder="Enter Asset ID"
                   className="input-field flex-1"
-                  onKeyPress={(e) => e.key === "Enter" && handleAddNFT()}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddNFT()}
                 />
                 <button
                   onClick={handleAddNFT}
@@ -206,7 +197,7 @@ export function NFTGallery() {
                   onChange={(e) => setBatchAssetIds(e.target.value)}
                   placeholder="Enter Asset IDs (comma-separated)"
                   className="input-field flex-1"
-                  onKeyPress={(e) => e.key === "Enter" && handleBatchLoad()}
+                  onKeyPress={(e) => e.key === 'Enter' && handleBatchLoad()}
                 />
                 <button
                   onClick={handleBatchLoad}
@@ -244,7 +235,7 @@ export function NFTGallery() {
                 <select
                   value={selectedStandard}
                   onChange={(e) =>
-                    setSelectedStandard(e.target.value as ARCStandard | "all")
+                    setSelectedStandard(e.target.value as ARCStandard | 'all')
                   }
                   className="pl-10 input-field"
                 >
@@ -298,27 +289,27 @@ function NFTCard({ nft }: NFTCardProps) {
   const { activeNetwork } = useNetwork();
   const getStandardColor = (standard: ARCStandard) => {
     switch (standard) {
-      case "arc3":
-        return "bg-pink-100 text-pink-800";
-      case "arc19":
-        return "bg-blue-100 text-blue-800";
-      case "arc69":
-        return "bg-green-100 text-green-800";
+      case 'arc3':
+        return 'bg-pink-100 text-pink-800';
+      case 'arc19':
+        return 'bg-blue-100 text-blue-800';
+      case 'arc69':
+        return 'bg-green-100 text-green-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStandardName = (standard: ARCStandard) => {
     switch (standard) {
-      case "arc3":
-        return "ARC-3";
-      case "arc19":
-        return "ARC-19";
-      case "arc69":
-        return "ARC-69";
+      case 'arc3':
+        return 'ARC-3';
+      case 'arc19':
+        return 'ARC-19';
+      case 'arc69':
+        return 'ARC-69';
       default:
-        return "Unknown";
+        return 'Unknown';
     }
   };
 
@@ -333,7 +324,7 @@ function NFTCard({ nft }: NFTCardProps) {
             className="w-full h-full object-cover"
             onError={(e) => {
               // Fallback to placeholder if image fails to load
-              (e.target as HTMLImageElement).style.display = "none";
+              (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
         ) : (
@@ -364,7 +355,12 @@ function NFTCard({ nft }: NFTCardProps) {
 
         <p className="text-sm text-gray-600">Unit: {nft.unitName}</p>
         <p className="text-sm text-gray-600">
-          ID: <IdLink id={nft.assetId} type="asset" network={activeNetwork as Network}>
+          ID:{' '}
+          <IdLink
+            id={nft.assetId}
+            type="asset"
+            network={activeNetwork as Network}
+          >
             {nft.assetId}
           </IdLink>
         </p>
