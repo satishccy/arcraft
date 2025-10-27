@@ -37,7 +37,15 @@ exports.Arc54 = void 0;
 const algosdk_1 = __importStar(require("algosdk"));
 const utils_1 = require("./utils");
 const abis_1 = require("./abis");
+/**
+ * The Arc54 class provides methods for interacting with the ARC54 contract.
+ */
 class Arc54 {
+    /**
+     * Get the application ID and address for the ARC54 contract on a given network.
+     * @param network The network to use.
+     * @returns An object containing the application ID and address.
+     */
     static getAppInfo(network) {
         const appId = network === 'mainnet' ? 1257620981 : 497806551;
         const appAddress = (0, algosdk_1.getApplicationAddress)(appId);
@@ -46,6 +54,13 @@ class Arc54 {
             appAddress,
         };
     }
+    /**
+     * Check if an address is opted into a specific asset.
+     * @param network The network to use.
+     * @param assetId The ID of the asset to check.
+     * @param address The address to check.
+     * @returns A boolean indicating whether the address is opted in.
+     */
     static async isOptedIn(network, assetId, address) {
         const algodClient = (0, utils_1.getAlgodClient)(network);
         try {
@@ -56,6 +71,14 @@ class Arc54 {
         }
         return true;
     }
+    /**
+     * Burn a specific amount of an asset.
+     * @param network The network to use.
+     * @param assetId The ID of the asset to burn.
+     * @param amount The amount of the asset to burn.
+     * @param sender The sender's address and signer.
+     * @returns The transaction ID.
+     */
     static async burnAsset(network, assetId, amount, sender) {
         const algodClient = (0, utils_1.getAlgodClient)(network);
         const appInfo = this.getAppInfo(network);
@@ -104,6 +127,12 @@ class Arc54 {
         await algosdk_1.default.waitForConfirmation(algodClient, result[result.length - 1], 3);
         return result[result.length - 1];
     }
+    /**
+     * Get the total amount of a specific asset that has been burned.
+     * @param network The network to use.
+     * @param assetId The ID of the asset to check.
+     * @returns The total amount of the asset that has been burned.
+     */
     static async getBurnedAmount(network, assetId) {
         try {
             const algodClient = (0, utils_1.getAlgodClient)(network);
