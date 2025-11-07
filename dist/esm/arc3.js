@@ -258,6 +258,68 @@ class Arc3 extends CoreAsset {
         };
     }
     /**
+     * Creates a new ARC-3 compliant NFT Transaction on the Algorand blockchain
+     * @param options - The configuration options for creating the ARC-3 NFT Transaction
+     * @returns A promise resolving to an algosdk.Transaction object
+     * @throws Error if transaction creation fails
+     */
+    static async makeAssetCreateTransaction({ name, unitName, creator, ipfs, image, properties, network, defaultFrozen = false, manager = undefined, reserve = undefined, freeze = undefined, clawback = undefined, total = 1, decimals = 0, }) {
+        // Upload image to IPFS
+        let imageCid;
+        if (typeof image.file === 'string') {
+            imageCid = await ipfs.upload(image.file, image.name);
+        }
+        else {
+            imageCid = await ipfs.upload(image.file, image.name);
+        }
+        const mimeType = typeof image.file === 'string'
+            ? mimeTypeLookup(image.name)
+            : lookupFromFile(image.file);
+        let blob;
+        if (typeof image.file === 'string') {
+            const buffer = await fs.promises.readFile(image.file);
+            const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+            blob = new Blob([arrayBuffer], {
+                type: mimeType,
+            });
+        }
+        else {
+            blob = new Blob([await image.file.arrayBuffer()], {
+                type: mimeType,
+            });
+        }
+        // Calculate SHA256 hash for image integrity
+        const imageHash = await this.calculateSHA256(blob);
+        // Create ARC-3 compliant metadata
+        const metadata = {
+            name: name,
+            unit_name: unitName,
+            creator: creator.address,
+            image: `ipfs://${imageCid}#arc3`,
+            image_integrity: `sha256-${imageHash}`,
+            image_mimetype: mimeType,
+            properties: properties,
+        };
+        // Upload metadata to IPFS
+        const metadataCid = await ipfs.uploadJson(metadata, 'metadata.json');
+        const client = getAlgodClient(network);
+        const sp = await client.getTransactionParams().do();
+        return algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
+            sender: creator.address,
+            suggestedParams: sp,
+            defaultFrozen: defaultFrozen,
+            unitName: unitName,
+            assetName: name,
+            manager: manager,
+            reserve: reserve,
+            freeze: freeze,
+            clawback: clawback,
+            assetURL: `ipfs://${metadataCid}#arc3`,
+            total: total,
+            decimals: decimals,
+        });
+    }
+    /**
      * Calculates SHA256 hash of blob content
      * @param blobContent - The blob content to hash
      * @returns Promise resolving to hex-encoded hash string

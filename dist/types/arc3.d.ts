@@ -5,7 +5,7 @@
 import { AssetParams } from 'algosdk/dist/types/client/v2/algod/models/types';
 import { CoreAsset } from './coreAsset';
 import { Network } from './types';
-import { TransactionSigner } from 'algosdk';
+import algosdk, { TransactionSigner } from 'algosdk';
 import { IPFS } from './ipfs';
 /**
  * Class representing an ARC-3 compliant NFT on Algorand.
@@ -139,6 +139,48 @@ declare class Arc3 extends CoreAsset {
         transactionId: string;
         assetId: number;
     }>;
+    /**
+     * Creates a new ARC-3 compliant NFT Transaction on the Algorand blockchain
+     * @param options - The configuration options for creating the ARC-3 NFT Transaction
+     * @returns A promise resolving to an algosdk.Transaction object
+     * @throws Error if transaction creation fails
+     */
+    static makeAssetCreateTransaction({ name, unitName, creator, ipfs, image, properties, network, defaultFrozen, manager, reserve, freeze, clawback, total, decimals, }: {
+        /** The name of the asset */
+        name: string;
+        /** The unit name for the asset */
+        unitName: string;
+        /** The creator of the asset, including address and signer */
+        creator: {
+            address: string;
+            signer: TransactionSigner;
+        };
+        /** The IPFS instance to use for uploading */
+        ipfs: IPFS;
+        /** The path to the image file */
+        image: {
+            file: string | File;
+            name: string;
+        };
+        /** Additional properties to include in the metadata */
+        properties: any;
+        /** The Algorand network to use */
+        network: Network;
+        /** Whether the asset should be frozen by default */
+        defaultFrozen?: boolean;
+        /** The manager address */
+        manager?: string;
+        /** The reserve address */
+        reserve?: string;
+        /** The freeze address */
+        freeze?: string;
+        /** The clawback address */
+        clawback?: string;
+        /** The total number of assets */
+        total?: number;
+        /** The decimals for the asset */
+        decimals?: number;
+    }): Promise<algosdk.Transaction>;
     /**
      * Calculates SHA256 hash of blob content
      * @param blobContent - The blob content to hash
