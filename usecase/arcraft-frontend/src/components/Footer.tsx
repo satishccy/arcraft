@@ -121,7 +121,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://satishccy.github.io/arcraft/"
+                  href="https://satishccy.github.io/arcraft/docs/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-600 hover:text-gray-900 transition-colors"

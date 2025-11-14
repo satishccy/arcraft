@@ -396,7 +396,7 @@ MIT License - see the main Arcraft repository for details.
 
 - **Arcraft SDK**: [GitHub](https://github.com/satishccy/arcraft)
 - **npm Package**: [arcraft](https://www.npmjs.com/package/arcraft)
-- **Documentation**: [API Docs](https://satishccy.github.io/arcraft/)
+- **Documentation**: [API Docs](https://satishccy.github.io/arcraft/docs/)
 - **Algorand**: [Official Website](https://algorand.com)
 - **ARC Standards**: [ARC Foundation](https://arc.algorand.foundation/)
 

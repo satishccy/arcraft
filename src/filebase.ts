@@ -6,8 +6,8 @@
 import { FilebaseClient } from '@filebase/client';
 
 // Environment detection
-const isNode = 
-  typeof globalThis !== "undefined" &&
+const isNode =
+  typeof globalThis !== 'undefined' &&
   !!(globalThis as any).process &&
   (globalThis as any).process.versions?.node;
 

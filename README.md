@@ -5,7 +5,9 @@
 
 A comprehensive JavaScript/TypeScript SDK for working with Algorand ARC (Algorand Request for Comments) standards. Supports both Node.js and browser environments with utilities for creating, managing, and querying NFTs and blockchain data.
 
-View the documentation [here](https://satishccy.github.io/arcraft/).
+View the documentation [here](https://satishccy.github.io/arcraft/docs/).
+
+View the frontend showcase [here](https://satishccy.github.io/arcraft/usecase/).
 
 ## 📋 Table of Contents
 
@@ -801,7 +803,7 @@ This package is fully documented with TypeDoc comments. You can generate and vie
 
 #### View Online Documentation
 
-Visit our comprehensive online documentation: [https://satishccy.github.io/arcraft/](https://satishccy.github.io/arcraft/)
+Visit our comprehensive online documentation: [https://satishccy.github.io/arcraft/docs/](https://satishccy.github.io/arcraft/docs/)
 
 #### Generate Local Documentation
 
@@ -990,7 +992,8 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🔗 Links
 
-- **Documentation**: [https://satishccy.github.io/arcraft/](https://satishccy.github.io/arcraft/)
+- **Documentation**: [https://satishccy.github.io/arcraft/docs/](https://satishccy.github.io/arcraft/docs/)
+- **Frontend Showcase**: [https://satishccy.github.io/arcraft/usecase/](https://satishccy.github.io/arcraft/usecase/)
 - **GitHub Repository**: [https://github.com/satishccy/arcraft](https://github.com/satishccy/arcraft)
 - **npm Package**: [https://www.npmjs.com/package/arcraft](https://www.npmjs.com/package/arcraft)
 - **Issues**: [https://github.com/satishccy/arcraft/issues](https://github.com/satishccy/arcraft/issues)

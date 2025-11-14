@@ -181,7 +181,7 @@ export function Documentation() {
                     NPM Package
                   </a>
                   <a
-                    href="https://satishccy.github.io/arcraft/"
+                    href="https://satishccy.github.io/arcraft/docs/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center text-sm text-gray-600 hover:text-purple-600"
@@ -1398,7 +1398,7 @@ try {
         </ul>
         <div className="mt-4">
           <a
-            href="https://satishccy.github.io/arcraft/"
+            href="https://satishccy.github.io/arcraft/docs/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center px-4 py-2 border border-indigo-300 rounded-md text-sm font-medium text-indigo-700 bg-white hover:bg-indigo-50"
@@ -2234,7 +2234,7 @@ if (result.success) {
               <li>
                 •{' '}
                 <a
-                  href="https://satishccy.github.io/arcraft/"
+                  href="https://satishccy.github.io/arcraft/docs/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline"
