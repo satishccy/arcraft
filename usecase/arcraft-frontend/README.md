@@ -6,11 +6,11 @@ A comprehensive React application demonstrating the full capabilities of the [Ar
 
 This frontend application serves as a complete showcase for the Arcraft npm package, demonstrating:
 
-- **Multi-ARC Support**: Create NFTs using ARC-3, ARC-19, and ARC-69 standards
-- **IPFS Integration**: Upload files using Pinata and Filebase providers
-- **Blockchain Queries**: Query application and asset data with ARC-82
-- **Metadata Tracking**: Track version history for updatable NFTs
-- **Cross-Platform Compatibility**: Browser-based implementation of the SDK
+- **Multi-ARC Support**: Create and manage assets using ARC-3, 19, 54, 59, 62, 69, and 82.
+- **IPFS Integration**: Upload files using Pinata and Filebase providers.
+- **Blockchain Queries**: Query application and asset data with ARC-82.
+- **Advanced Asset Utilities**: Standardized methods for burning, sending, and tracking supply of assets.
+- **Cross-Platform Compatibility**: Browser-based implementation of the SDK.
 
 ## ✨ Features
 
@@ -22,12 +22,28 @@ This frontend application serves as a complete showcase for the Arcraft npm pack
 
 ### 🎨 **NFT Creator**
 
-- Interactive form for creating NFTs across all ARC standards
-- Support for ARC-3, ARC-19, and ARC-69
-- File upload with drag-and-drop interface
-- IPFS provider selection (Pinata/Filebase)
-- Network selection (Mainnet/Testnet/Localnet)
-- Real-time form validation and feedback
+- Interactive form for creating NFTs across ARC-3, ARC-19, and ARC-69 standards.
+- File upload with drag-and-drop interface.
+- IPFS provider selection (Pinata/Filebase).
+- Real-time form validation and feedback.
+
+### 🔥 **Asset Burning (ARC-54)**
+
+- **Burn Assets**: Permanently remove assets from circulation by sending them to the standardized ARC-54 burn contract.
+- **Check Burned Amount**: View the total amount of any asset that has been burned.
+- **Auto Opt-In**: The contract automatically handles asset opt-ins, funding the MBR if necessary.
+
+### 📬 **Asset Inbox (ARC-59)**
+
+- **Send to Inbox**: Transfer assets to any address without requiring the receiver to opt-in first.
+- **Check Inbox**: View all assets pending in a user's inbox.
+- **Claim & Reject**: Receivers can choose to claim assets (which handles the opt-in) or reject them back to the creator.
+
+### 📊 **Circulating Supply (ARC-62)**
+
+- **Compatibility Check**: Determine if an asset implements the ARC-62 standard.
+- **Get Supply**: Fetch the accurate, on-chain circulating supply from ARC-62 compliant contracts.
+- **Fallback Calculation**: For non-compliant assets, calculates the supply as `Total - Burned - Reserve`.
 
 ### 🖼️ **NFT Gallery**
 
@@ -45,7 +61,7 @@ This frontend application serves as a complete showcase for the Arcraft npm pack
 - Asset parameter queries
 - Custom URI support
 
-### 📊 **Metadata Tracker**
+### 📝 **Metadata Tracker**
 
 - Track metadata versions for ARC-19 and ARC-69 NFTs
 - Version history visualization
@@ -128,6 +144,9 @@ The application supports:
 ```
 src/
 ├── components/           # React components
+│   ├── Arc54Burn.tsx    # ARC-54 Asset burning component
+│   ├── Arc59Inbox.tsx   # ARC-59 Asset inbox component
+│   ├── Arc62Supply.tsx  # ARC-62 Circulating supply component
 │   ├── Navbar.tsx       # Navigation component
 │   ├── Hero.tsx         # Landing page hero
 │   ├── NFTCreator.tsx   # NFT creation interface
@@ -157,14 +176,17 @@ The application uses:
 - **ARC Standards**: Unique colors for each standard
   - ARC-3: Pink
   - ARC-19: Blue
-  - ARC-69: Green
+  - ARC-54: Orange
+  - ARC-59: Purple
+  - ARC-62: Green
+  - ARC-69: Teal
   - ARC-82: Orange
 
 ## 🔌 SDK Integration
 
 The application demonstrates all major Arcraft SDK features:
 
-### NFT Creation
+### NFT Creation (ARC-3, ARC-19, ARC-69)
 
 ```typescript
 import { Arc3, Arc19, Arc69, IPFS } from 'arcraft';
@@ -181,7 +203,43 @@ const result = await Arc3.create({
 });
 ```
 
-### Blockchain Queries
+### Asset Burning (ARC-54)
+
+```typescript
+import { Arc54 } from 'arcraft';
+
+// Burn 100 units of an asset
+const result = await Arc54.burnAsset('testnet', assetId, 100, {
+  address: sender.addr,
+  signer: makeBasicAccountTransactionSigner(sender),
+});
+```
+
+### Asset Inbox (ARC-59)
+
+```typescript
+import { Arc59 } from 'arcraft';
+
+// Send an asset to a receiver's inbox
+const result = await Arc59.sendAsset({
+  network: 'testnet',
+  assetId: 12345,
+  amount: 1,
+  receiver: receiverAddress,
+  sender: { address, signer },
+});
+```
+
+### Circulating Supply (ARC-62)
+
+```typescript
+import { Arc62 } from 'arcraft';
+
+// Get the circulating supply of an asset
+const supply = await Arc62.getCirculatingSupply(assetId, 'testnet');
+```
+
+### Blockchain Queries (ARC-82)
 
 ```typescript
 import { Arc82 } from 'arcraft';
@@ -199,6 +257,56 @@ import { Arc19, Arc69 } from 'arcraft';
 // Get metadata versions
 const versions = await Arc19.getMetadataVersions(assetId, network);
 ```
+
+## 🐛 Troubleshooting: Frontend Bundling
+
+When using `arcraft` in a frontend project with Vite, you may encounter errors related to Node.js globals like `Buffer`. This is especially common when linking the SDK locally.
+
+**Error examples:** `RangeError: Offset is outside the bounds of the DataView`, `global is not defined`.
+
+### Solution for Vite
+
+1.  **Install `vite-plugin-node-polyfills`**:
+
+    ```bash
+    pnpm add -D vite-plugin-node-polyfills
+    ```
+
+2.  **Update `vite.config.ts`**:
+    This configuration ensures `Buffer` is available and de-duplicates `algosdk` to prevent version conflicts.
+
+    ```typescript
+    import { defineConfig } from 'vite';
+    import react from '@vitejs/plugin-react';
+    import { nodePolyfills } from 'vite-plugin-node-polyfills';
+
+    export default defineConfig({
+      plugins: [
+        react(),
+        nodePolyfills({
+          globals: {
+            Buffer: true,
+            global: true,
+            process: true,
+          },
+        }),
+      ],
+      define: {
+        global: 'globalThis',
+      },
+      resolve: {
+        // Important for preventing version conflicts with linked packages
+        dedupe: ['algosdk'],
+      },
+      optimizeDeps: {
+        esbuildOptions: {
+          define: {
+            global: 'globalThis',
+          },
+        },
+      },
+    });
+    ```
 
 ## 🧪 Testing Features
 

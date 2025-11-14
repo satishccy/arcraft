@@ -21,6 +21,7 @@ export { Arc19 } from './arc19';
 export { Arc69 } from './arc69';
 export { Arc59 } from './arc59';
 export { Arc54 } from './arc54';
+export { Arc62 } from './arc62';
 // Export AssetFactory (depends on all ARC classes)
 export { AssetFactory } from './assetFactory';
 // Export ARC-82 (standalone)

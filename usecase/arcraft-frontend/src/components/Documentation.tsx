@@ -8,6 +8,9 @@ import {
   CogIcon,
   CommandLineIcon,
   DevicePhoneMobileIcon,
+  FireIcon,
+  InboxIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 
 type Section =
@@ -15,6 +18,9 @@ type Section =
   | 'installation'
   | 'arc3'
   | 'arc19'
+  | 'arc54'
+  | 'arc59'
+  | 'arc62'
   | 'arc69'
   | 'arc82'
   | 'ipfs'
@@ -31,6 +37,9 @@ export function Documentation() {
     { id: 'installation', name: 'Installation', icon: CommandLineIcon },
     { id: 'arc3', name: 'ARC-3', icon: DocumentTextIcon },
     { id: 'arc19', name: 'ARC-19', icon: DocumentTextIcon },
+    { id: 'arc54', name: 'ARC-54: Burning', icon: FireIcon },
+    { id: 'arc59', name: 'ARC-59: Inbox', icon: InboxIcon },
+    { id: 'arc62', name: 'ARC-62: Supply', icon: ChartBarIcon },
     { id: 'arc69', name: 'ARC-69', icon: DocumentTextIcon },
     { id: 'arc82', name: 'ARC-82', icon: CodeBracketIcon },
     { id: 'ipfs', name: 'IPFS Integration', icon: LinkIcon },
@@ -62,6 +71,12 @@ export function Documentation() {
         return <Arc3Section />;
       case 'arc19':
         return <Arc19Section />;
+      case 'arc54':
+        return <Arc54Section />;
+      case 'arc59':
+        return <Arc59Section />;
+      case 'arc62':
+        return <Arc62Section />;
       case 'arc69':
         return <Arc69Section />;
       case 'arc82':
@@ -503,12 +518,13 @@ NETWORK=testnet`}</code>
           ⚠️ Browser Compatibility Issues
         </h3>
         <p className="text-red-800 mb-4">
-          When using Arcraft in frontend applications (React, Vue, etc.), you
-          may encounter these common errors:
+          When using Arcraft in frontend applications (React, Vue, etc.) with
+          bundlers like Vite, you may encounter errors related to Node.js
+          globals not being available in the browser.
         </p>
         <div className="bg-red-100 rounded p-3 mb-4">
           <code className="text-red-900 text-sm">
-            • "Offset is outside the bounds of the DataView"
+            • "RangeError: Offset is outside the bounds of the DataView"
             <br />
             • "global is not defined"
             <br />• "Buffer is not defined"
@@ -516,78 +532,68 @@ NETWORK=testnet`}</code>
         </div>
 
         <h4 className="font-semibold text-red-900 mb-3">
-          Solution: Add Browser Polyfills
+          Solution: Use Node Polyfills for Vite
         </h4>
 
         <div className="space-y-4">
           <div>
             <p className="text-red-800 font-medium mb-2">
-              1. Install buffer package:
+              1. Install the Vite node polyfills plugin:
             </p>
             <pre className="bg-gray-900 text-gray-100 rounded p-3 text-sm overflow-x-auto">
-              <code>npm install buffer</code>
+              <code>npm install vite-plugin-node-polyfills</code>
             </pre>
           </div>
 
           <div>
             <p className="text-red-800 font-medium mb-2">
-              2. Add polyfills to your main entry file (main.tsx, index.tsx,
-              etc.):
-            </p>
-            <pre className="bg-gray-900 text-gray-100 rounded p-3 text-sm overflow-x-auto">
-              <code>{`// Add these imports at the top of your main.tsx or index.tsx
-import { Buffer } from 'buffer';
-
-// Add global polyfills
-(globalThis as any).global = globalThis;
-(globalThis as any).Buffer = Buffer;`}</code>
-            </pre>
-          </div>
-
-          <div>
-            <p className="text-red-800 font-medium mb-2">
-              3. For Vite users, add to vite.config.ts:
+              2. Update your `vite.config.ts` to use the plugin and prevent
+              dependency issues:
             </p>
             <pre className="bg-gray-900 text-gray-100 rounded p-3 text-sm overflow-x-auto">
               <code>{`import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    nodePolyfills({
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+    }),
+  ],
   define: {
-    global: 'globalThis',
+    'global': 'globalThis',
   },
   resolve: {
-    alias: {
-      buffer: 'buffer',
-    },
+    // Deduplicate algosdk to avoid issues with linked packages
+    dedupe: ['algosdk'],
   },
   optimizeDeps: {
-    include: ['buffer'],
+    esbuildOptions: {
+      // Define global for esbuild optimizer
+      define: {
+        global: 'globalThis',
+      },
+    },
   },
 });`}</code>
-            </pre>
-          </div>
-
-          <div>
-            <p className="text-red-800 font-medium mb-2">
-              4. For Create React App users, add to package.json:
-            </p>
-            <pre className="bg-gray-900 text-gray-100 rounded p-3 text-sm overflow-x-auto">
-              <code>{`{
-  "browser": {
-    "buffer": "buffer"
-  }
-}`}</code>
             </pre>
           </div>
         </div>
 
         <div className="mt-4 p-3 bg-red-100 rounded">
           <p className="text-red-800 text-sm">
-            <strong>Note:</strong> These polyfills are required because Arcraft
-            uses Node.js-specific modules (like Buffer and crypto) that need to
-            be polyfilled in browser environments.
+            <strong>Note:</strong> This configuration is crucial because
+            `arcraft` and its dependency `algosdk` use Node.js-specific modules
+            (like `Buffer`) that need to be polyfilled in browser environments.
+            The `dedupe` option is especially important if you are linking
+            `arcraft` locally to prevent multiple, incompatible versions of
+            `algosdk` from being bundled.
           </p>
         </div>
       </div>
@@ -736,6 +742,210 @@ versions.forEach((version, index) => {
           <li>• Updatable metadata</li>
           <li>• Version tracking</li>
           <li>• Efficient storage through reserve address</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function Arc54Section() {
+  return (
+    <div className="prose max-w-none">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        ARC-54: Asset Burning
+      </h2>
+      <p className="text-gray-600 mb-6">
+        ARC-54 provides a standardized smart contract for burning Algorand
+        Standard Assets (ASAs). By sending assets to this contract, they are
+        permanently removed from circulation, provided the asset does not have a
+        clawback address configured.
+      </p>
+
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Burning an Asset (Node.js)
+      </h3>
+      <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto mb-6">
+        <code>{`import { Arc54 } from 'arcraft';
+import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
+import { MNEMONIC } from './config';
+
+async function main() {
+  const sender = algosdk.mnemonicToSecretKey(MNEMONIC);
+  const assetId = 10458941; // Example asset on Testnet
+
+  const assetBurnedPrev = await Arc54.getBurnedAmount('testnet', assetId);
+  console.log(\`Prev burned amount of asset \${assetId}: \${assetBurnedPrev}\`);
+
+  const result = await Arc54.burnAsset('testnet', assetId, 1000000, {
+    address: sender.addr.toString(),
+    signer: makeBasicAccountTransactionSigner(sender),
+  });
+  console.log(\`Burned asset \${assetId} amount: 1000000 txid: \${result}\`);
+
+  const assetBurnedAfter = await Arc54.getBurnedAmount('testnet', assetId);
+  console.log(\`After burned amount of asset \${assetId}: \${assetBurnedAfter}\`);
+}
+
+main();`}</code>
+      </pre>
+
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+        <h4 className="font-semibold text-orange-900 mb-2">Key Features</h4>
+        <ul className="text-orange-800 space-y-1">
+          <li>• Standardized burn address and App ID for discoverability.</li>
+          <li>• Facilitates accurate calculation of circulating supply.</li>
+          <li>• Simple contract that only accepts assets, cannot send them.</li>
+          <li>
+            • `burnAsset` handles contract opt-in and MBR funding if necessary.
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function Arc59Section() {
+  return (
+    <div className="prose max-w-none">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        ARC-59: Asset Inbox
+      </h2>
+      <p className="text-gray-600 mb-6">
+        ARC-59 defines an inbox-based system for sending ASAs, allowing users to
+        send assets to a recipient without requiring them to opt-in first. The
+        assets are held in a contract-controlled inbox from which the recipient
+        can either claim or reject them.
+      </p>
+
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Full Workflow Example (Node.js)
+      </h3>
+      <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto mb-6">
+        <code>{`import { Arc59 } from 'arcraft';
+import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
+import { MNEMONIC, MNEMONIC2 } from './config';
+
+async function main() {
+  const sender = algosdk.mnemonicToSecretKey(MNEMONIC);
+  const receiver = algosdk.mnemonicToSecretKey(MNEMONIC2);
+  const claimingAssetId = 10458941;
+
+  // 1. Send an asset to the receiver's inbox
+  const result = await Arc59.sendAsset({
+    network: 'testnet',
+    assetId: claimingAssetId,
+    amount: 1000000,
+    receiver: receiver.addr.toString(),
+    sender: {
+      address: sender.addr.toString(),
+      signer: makeBasicAccountTransactionSigner(sender),
+    },
+  });
+  console.log(\`Sent asset to receiver's inbox, txid: \${result}\`);
+
+  // 2. Check the assets in the receiver's inbox
+  const newAssetInbox = await Arc59.getAssetsInInbox({
+    network: 'testnet',
+    receiver: receiver.addr.toString(),
+  });
+  console.log(\`Receiver's inbox contains \${newAssetInbox.length} asset(s)\`);
+
+  // 3. Receiver claims the asset
+  const claimResult = await Arc59.claimAsset({
+    network: 'testnet',
+    receiver: {
+      address: receiver.addr.toString(),
+      signer: makeBasicAccountTransactionSigner(receiver),
+    },
+    assetId: claimingAssetId,
+  });
+  console.log(\`Claimed asset, txid: \${claimResult}\`);
+}
+
+main();`}</code>
+      </pre>
+
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+        <h4 className="font-semibold text-purple-900 mb-2">Key Features</h4>
+        <ul className="text-purple-800 space-y-1">
+          <li>• Send assets without requiring the receiver to opt-in.</li>
+          <li>
+            • `sendAsset` performs a direct transfer if the receiver is already
+            opted-in.
+          </li>
+          <li>• `getAssetsInInbox` lists all assets pending in an inbox.</li>
+          <li>
+            • `claimAsset` allows the receiver to accept and receive the asset.
+          </li>
+          <li>
+            • `rejectAsset` allows the receiver to return the asset to its
+            creator.
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function Arc62Section() {
+  return (
+    <div className="prose max-w-none">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        ARC-62: Circulating Supply
+      </h2>
+      <p className="text-gray-600 mb-6">
+        ARC-62 provides a standardized smart contract interface for determining
+        an asset's true circulating supply. It offers a reliable, on-chain
+        method for dApps and explorers to query this information, accounting for
+        burned tokens and reserve holdings.
+      </p>
+
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        Getting Circulating Supply (Node.js)
+      </h3>
+      <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto mb-6">
+        <code>{`import { Arc62 } from 'arcraft';
+
+async function main() {
+  const testnetArc62AssetId = 733094741;
+  const testnetNonArc62AssetId = 10458941; // Does not implement ARC-62
+
+  // --- Check an ARC-62 compatible asset ---
+  const isCompatible = await Arc62.isArc62Compatible(testnetArc62AssetId, 'testnet');
+  console.log(\`Asset is ARC-62 compatible: \${isCompatible.compatible}\`);
+
+  const circulatingSupply = await Arc62.getCirculatingSupply(testnetArc62AssetId, 'testnet');
+  console.log(\`ARC-62 circulating supply: \${circulatingSupply}\`);
+
+
+  // --- Check a non-ARC-62 asset (fallback calculation) ---
+  const isCompatible2 = await Arc62.isArc62Compatible(testnetNonArc62AssetId, 'testnet');
+  console.log(\`Asset is ARC-62 compatible: \${isCompatible2.compatible}\`);
+
+  const circulatingSupply2 = await Arc62.getCirculatingSupply(testnetNonArc62AssetId, 'testnet');
+  console.log(\`Fallback circulating supply: \${circulatingSupply2}\`);
+}
+
+main();`}</code>
+      </pre>
+
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+        <h4 className="font-semibold text-green-900 mb-2">Key Features</h4>
+        <ul className="text-green-800 space-y-1">
+          <li>
+            • `isArc62Compatible` checks if an asset follows the standard.
+          </li>
+          <li>
+            • `getCirculatingSupply` calls the on-chain contract method if
+            compatible.
+          </li>
+          <li>
+            • Provides a reliable fallback calculation for non-ARC-62 assets.
+          </li>
+          <li>
+            • The fallback calculation is: `Total - Burned (ARC-54) - Reserve
+            Amount`.
+          </li>
         </ul>
       </div>
     </div>

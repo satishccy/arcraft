@@ -5,9 +5,9 @@
  */
 import { FilebaseClient } from '@filebase/client';
 // Environment detection
-const isNode = typeof window === 'undefined' &&
-    typeof process !== 'undefined' &&
-    process.versions?.node;
+const isNode = typeof globalThis !== "undefined" &&
+    !!globalThis.process &&
+    globalThis.process.versions?.node;
 // Dynamic imports for Node.js-specific modules
 let fs;
 if (isNode) {

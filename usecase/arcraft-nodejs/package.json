@@ -1,5 +1,5 @@
 {
-  "name": "arcraft-test",
+  "name": "arcraft-nodejs",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -15,8 +15,8 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "algosdk": "^3.3.1",
-    "arcraft": "link:../../../AppData/Local/pnpm/global/5/node_modules/arcraft",
+    "algosdk": "^3.5.2",
+    "arcraft": "workspace:*",
     "dotenv": "^16.5.0"
   }
 }

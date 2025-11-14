@@ -141,7 +141,6 @@ export class Arc69 extends CoreAsset {
     static async hasValidMetadata(assetId, network) {
         try {
             const metadata = await _a.fetchMetadata(assetId, network);
-            console.log('metadata', metadata);
             if (metadata) {
                 if (metadata.standard === 'arc69') {
                     return true;
@@ -182,7 +181,6 @@ export class Arc69 extends CoreAsset {
         }
         const isValidUrl = _a.hasValidUrl(url);
         const isValidMetadata = await _a.hasValidMetadata(id, network);
-        console.log('isValidUrl', isValidUrl, 'isValidMetadata', isValidMetadata);
         return isValidUrl && isValidMetadata;
     }
     /**
@@ -248,7 +246,6 @@ export class Arc69 extends CoreAsset {
             mime_type: mimeType,
             properties: properties,
         };
-        console.log(freeze, reserve, clawback, 'metadata');
         const client = getAlgodClient(network);
         const atc = new AtomicTransactionComposer();
         let sp = await client.getTransactionParams().do();

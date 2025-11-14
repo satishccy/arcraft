@@ -164,7 +164,7 @@ export function Footer() {
               </p>
             </div>
             <div className="mt-4 md:mt-0 flex items-center space-x-6 text-sm text-gray-600">
-              <span>Supports ARC-3, ARC-19, ARC-69, ARC-82</span>
+              <span>Supports ARC-3, 19, 54, 59, 62, 69, 82</span>
               <span>•</span>
               <span>Node.js & Browser</span>
               <span>•</span>

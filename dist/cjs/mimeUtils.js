@@ -8,9 +8,9 @@ exports.mime = void 0;
 exports.lookup = lookup;
 exports.lookupFromFile = lookupFromFile;
 // Environment detection
-const isNode = typeof window === 'undefined' &&
-    typeof process !== 'undefined' &&
-    process.versions?.node;
+const isNode = typeof globalThis !== "undefined" &&
+    !!globalThis.process &&
+    globalThis.process.versions?.node;
 // Dynamic import for Node.js mime-types package
 let mimeTypes;
 if (isNode) {

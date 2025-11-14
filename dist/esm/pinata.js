@@ -5,9 +5,9 @@
  */
 import axios from 'axios';
 // Environment detection
-const isNode = typeof window === 'undefined' &&
-    typeof process !== 'undefined' &&
-    process.versions?.node;
+const isNode = typeof globalThis !== "undefined" &&
+    !!globalThis.process &&
+    globalThis.process.versions?.node;
 // Dynamic imports for Node.js-specific modules
 let fs;
 let FormDataNode;

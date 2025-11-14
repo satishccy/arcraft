@@ -180,7 +180,6 @@ class Arc69 extends coreAsset_1.CoreAsset {
     static async hasValidMetadata(assetId, network) {
         try {
             const metadata = await _a.fetchMetadata(assetId, network);
-            console.log('metadata', metadata);
             if (metadata) {
                 if (metadata.standard === 'arc69') {
                     return true;
@@ -221,7 +220,6 @@ class Arc69 extends coreAsset_1.CoreAsset {
         }
         const isValidUrl = _a.hasValidUrl(url);
         const isValidMetadata = await _a.hasValidMetadata(id, network);
-        console.log('isValidUrl', isValidUrl, 'isValidMetadata', isValidMetadata);
         return isValidUrl && isValidMetadata;
     }
     /**
@@ -287,7 +285,6 @@ class Arc69 extends coreAsset_1.CoreAsset {
             mime_type: mimeType,
             properties: properties,
         };
-        console.log(freeze, reserve, clawback, 'metadata');
         const client = (0, utils_1.getAlgodClient)(network);
         const atc = new algosdk_1.AtomicTransactionComposer();
         let sp = await client.getTransactionParams().do();

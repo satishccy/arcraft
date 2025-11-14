@@ -4,10 +4,10 @@
  */
 
 // Environment detection
-const isNode =
-  typeof window === 'undefined' &&
-  typeof process !== 'undefined' &&
-  process.versions?.node;
+const isNode = 
+  typeof globalThis !== "undefined" &&
+  !!(globalThis as any).process &&
+  (globalThis as any).process.versions?.node;
 
 // Dynamic import for Node.js mime-types package
 let mimeTypes: any;

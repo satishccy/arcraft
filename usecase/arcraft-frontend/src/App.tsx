@@ -7,6 +7,9 @@ import { AssetExplorer } from './components/AssetExplorer';
 import { MetadataTracker } from './components/MetadataTracker';
 import { Documentation } from './components/Documentation';
 import { Footer } from './components/Footer';
+import { Arc54Burn } from './components/Arc54Burn';
+import { Arc59Inbox } from './components/Arc59Inbox';
+import { Arc62Supply } from './components/Arc62Supply';
 import {
   WalletProvider,
   WalletManager,
@@ -38,6 +41,9 @@ function App() {
               <Route path="/gallery" element={<NFTGallery />} />
               <Route path="/explorer" element={<AssetExplorer />} />
               <Route path="/tracker" element={<MetadataTracker />} />
+              <Route path="/burn" element={<Arc54Burn />} />
+              <Route path="/inbox" element={<Arc59Inbox />} />
+              <Route path="/supply" element={<Arc62Supply />} />
               <Route path="/docs" element={<Documentation />} />
             </Routes>
             <Footer />
@@ -83,6 +89,21 @@ function HomePage() {
               icon="🎨"
             />
             <FeatureCard
+              title="Asset Burning (ARC-54)"
+              description="Permanently burn ASAs using the standardized ARC-54 burning application"
+              icon="🔥"
+            />
+            <FeatureCard
+              title="Asset Inbox (ARC-59)"
+              description="Send assets without requiring receiver opt-in using ARC-59 inbox system"
+              icon="📬"
+            />
+            <FeatureCard
+              title="Circulating Supply (ARC-62)"
+              description="Check asset circulating supply with ARC-62 standardized calculation"
+              icon="📊"
+            />
+            <FeatureCard
               title="IPFS Integration"
               description="Seamless file uploads to IPFS using Pinata and Filebase providers"
               icon="🗄️"
@@ -91,21 +112,6 @@ function HomePage() {
               title="Blockchain Queries"
               description="Query application and asset data using ARC-82 URI standards"
               icon="🔍"
-            />
-            <FeatureCard
-              title="Metadata Versioning"
-              description="Track and manage NFT metadata versions across different standards"
-              icon="📝"
-            />
-            <FeatureCard
-              title="Cross-Platform"
-              description="Works seamlessly in both Node.js and browser environments"
-              icon="🌐"
-            />
-            <FeatureCard
-              title="TypeScript Support"
-              description="Full type definitions for better development experience"
-              icon="⚡"
             />
           </div>
         </div>

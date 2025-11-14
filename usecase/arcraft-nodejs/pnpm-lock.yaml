@@ -11,8 +11,8 @@ importers:
   .:
     dependencies:
       algosdk:
-        specifier: ^3.3.1
-        version: 3.3.1
+        specifier: ^3.5.2
+        version: 3.5.2
       arcraft:
         specifier: link:../../../../AppData/Local/pnpm/global/5/node_modules/arcraft
         version: link:../../../../AppData/Local/pnpm/global/5/node_modules/arcraft
@@ -269,10 +269,10 @@ packages:
       }
     engines: { node: '>= 14' }
 
-  algosdk@3.3.1:
+  algosdk@3.5.2:
     resolution:
       {
-        integrity: sha512-HhECqY3SIqXTl7qNS7pFR+raOU7OPaJlTQBB8JWPA4F2N2OmUHYu9IDHeN+nu6Sb2uDlFJVB/tWYSc17zCNUoQ==,
+        integrity: sha512-frhGtZl1JvfrLRKmMvUm880wj4OiWsWo2FhbreNWh7pdFsKuWPj60fV682wt/CYefLI70iwHavPOwGBkTVt0VA==,
       }
     engines: { node: '>=18.0.0' }
 
@@ -463,7 +463,7 @@ snapshots:
 
   algorand-msgpack@1.1.0: {}
 
-  algosdk@3.3.1:
+  algosdk@3.5.2:
     dependencies:
       algorand-msgpack: 1.1.0
       hi-base32: 0.5.1

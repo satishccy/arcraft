@@ -42,7 +42,6 @@ class AssetFactory {
         }
         // Check for ARC-69 compliance (requires network call)
         const isArc69 = await arc69_1.Arc69.isArc69(assetParams.url || '', id, network);
-        console.log('isArc69', isArc69);
         if (isArc69) {
             return await arc69_1.Arc69.fromAssetParams(id, assetParams, network);
         }

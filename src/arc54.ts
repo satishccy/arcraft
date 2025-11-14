@@ -57,13 +57,17 @@ export class Arc54 {
     const suggestedParams = await algodClient.getTransactionParams().do();
     const atc = new algosdk.AtomicTransactionComposer();
     const accountInfo = await algodClient
-      .accountInformation(sender.address)
+      .accountInformation(appInfo.appAddress.toString())
       .do();
     const availableBalance =
       accountInfo.amount - accountInfo.minBalance > 0n
         ? accountInfo.amount - accountInfo.minBalance
         : 0n;
-    const isOptedIn = await this.isOptedIn(network, assetId, sender.address);
+    const isOptedIn = await this.isOptedIn(
+      network,
+      assetId,
+      appInfo.appAddress.toString()
+    );
     if (!isOptedIn) {
       atc.addMethodCall({
         appID: appInfo.appId,
@@ -71,7 +75,7 @@ export class Arc54 {
         methodArgs: [assetId],
         appForeignAssets: [assetId],
         sender: sender.address,
-        suggestedParams,
+        suggestedParams: { ...suggestedParams, fee: 2000, flatFee: true },
         signer: sender.signer,
       });
     }

@@ -110,7 +110,11 @@ export class Arc59 {
    * const opted = await Arc59.isOptedIn('testnet', 12345, addr);
    * ```
    */
-  static async isOptedIn(network: Network, assetId: number, address: string) {
+  private static async isOptedIn(
+    network: Network,
+    assetId: number,
+    address: string
+  ) {
     const algodClient = getAlgodClient(network);
     try {
       await algodClient.accountAssetInformation(address, assetId).do();

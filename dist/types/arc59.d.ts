@@ -65,7 +65,7 @@ export declare class Arc59 {
      * const opted = await Arc59.isOptedIn('testnet', 12345, addr);
      * ```
      */
-    static isOptedIn(network: Network, assetId: number, address: string): Promise<boolean>;
+    private static isOptedIn;
     /**
      * Get the ARC-59 inbox address for a receiver.
      *

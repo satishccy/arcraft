@@ -30,6 +30,9 @@ View the documentation [here](https://satishccy.github.io/arcraft/).
 
 - **ARC-3**: Create and manage NFTs with external metadata on IPFS
 - **ARC-19**: Advanced NFTs with template-based IPFS URIs and updatable metadata
+- **ARC-54**: Standardized asset burning for accurate supply tracking
+- **ARC-59**: Opt-in-less asset transfers via a secure inbox system
+- **ARC-62**: On-chain circulating supply verification
 - **ARC-69**: NFTs with embedded metadata in transaction notes
 - **ARC-82**: Query blockchain data using standardized URI schemes
 
@@ -61,6 +64,18 @@ Traditional NFT standard where metadata is stored externally (typically on IPFS)
 ### ARC-19: Advanced NFT Standard
 
 Enhanced NFT standard with template-based IPFS URIs that allow for more efficient storage and updatable metadata through reserve address manipulation.
+
+### ARC-54: Asset Burning Standard
+
+Provides a standardized smart contract for burning Algorand Standard Assets (ASAs), enabling accurate tracking of circulating supply.
+
+### ARC-59: Asset Inbox Standard
+
+Defines an inbox-based system for sending ASAs without requiring the recipient to opt-in first, preventing "asset spam" and simplifying airdrops.
+
+### ARC-62: Circulating Supply Standard
+
+Offers a standardized on-chain method to query an asset's true circulating supply, accounting for burned tokens and reserve holdings.
 
 ### ARC-69: Embedded Metadata NFT Standard
 
@@ -244,6 +259,99 @@ async function queryBlockchainData() {
 }
 ```
 
+### ARC-54 Asset Burning
+
+```javascript
+import { Arc54 } from 'arcraft';
+import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
+
+async function burnAsset() {
+  const account = algosdk.mnemonicToSecretKey('your mnemonic phrase here');
+  const assetId = 10458941; // Example asset on Testnet
+
+  // Get burned amount before
+  const before = await Arc54.getBurnedAmount('testnet', assetId);
+  console.log(`Burned amount before: ${before}`);
+
+  // Burn 1000 units of the asset
+  const txId = await Arc54.burnAsset('testnet', assetId, 1000, {
+    address: account.addr,
+    signer: makeBasicAccountTransactionSigner(account),
+  });
+  console.log(`Burn transaction ID: ${txId}`);
+
+  // Get burned amount after
+  const after = await Arc54.getBurnedAmount('testnet', assetId);
+  console.log(`Burned amount after: ${after}`);
+}
+```
+
+### ARC-59 Asset Inbox
+
+```javascript
+import { Arc59 } from 'arcraft';
+import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
+
+async function useAssetInbox() {
+  const sender = algosdk.mnemonicToSecretKey('sender mnemonic here');
+  const receiver = algosdk.mnemonicToSecretKey('receiver mnemonic here');
+  const assetId = 10458941; // Example asset on Testnet
+
+  // Send asset to receiver's inbox
+  const sendTxId = await Arc59.sendAsset({
+    network: 'testnet',
+    assetId,
+    amount: 1,
+    receiver: receiver.addr,
+    sender: {
+      address: sender.addr,
+      signer: makeBasicAccountTransactionSigner(sender),
+    },
+  });
+  console.log(`Send to inbox transaction ID: ${sendTxId}`);
+
+  // Receiver checks their inbox
+  const inboxAssets = await Arc59.getAssetsInInbox({
+    network: 'testnet',
+    receiver: receiver.addr,
+  });
+  console.log('Assets in inbox:', inboxAssets);
+
+  // Receiver claims the asset
+  const claimTxId = await Arc59.claimAsset({
+    network: 'testnet',
+    assetId,
+    receiver: {
+      address: receiver.addr,
+      signer: makeBasicAccountTransactionSigner(receiver),
+    },
+  });
+  console.log(`Claim transaction ID: ${claimTxId}`);
+}
+```
+
+### ARC-62 Circulating Supply
+
+```javascript
+import { Arc62 } from 'arcraft';
+
+async function checkCirculatingSupply() {
+  const arc62AssetId = 733094741; // ARC-62 compatible asset on Testnet
+  const nonArc62AssetId = 10458941; // Not ARC-62 compatible
+
+  // Check an ARC-62 compatible asset
+  const isCompatible = await Arc62.isArc62Compatible(arc62AssetId, 'testnet');
+  console.log(`Is asset compatible? ${isCompatible.compatible}`);
+
+  const supply1 = await Arc62.getCirculatingSupply(arc62AssetId, 'testnet');
+  console.log(`On-chain circulating supply: ${supply1}`);
+
+  // Check a non-ARC-62 asset (uses fallback calculation)
+  const supply2 = await Arc62.getCirculatingSupply(nonArc62AssetId, 'testnet');
+  console.log(`Fallback circulating supply: ${supply2}`);
+}
+```
+
 ## 🗂️ IPFS Integration
 
 ### Supported Providers
@@ -403,6 +511,53 @@ const id = Arc82.extractId(uri);
 
 // Extract type from URI
 const type = Arc82.extractType(uri);
+```
+
+### Arc54 Class
+
+```javascript
+// Get contract info
+const appInfo = Arc54.getAppInfo(network);
+
+// Burn an asset
+const txId = await Arc54.burnAsset(network, assetId, amount, sender);
+
+// Get total burned amount for an asset
+const burnedAmount = await Arc54.getBurnedAmount(network, assetId);
+```
+
+### Arc59 Class
+
+```javascript
+// Send an asset to a user's inbox
+const sendTxId = await Arc59.sendAsset({
+  network,
+  assetId,
+  amount,
+  receiver,
+  sender,
+});
+
+// Get all assets in an inbox
+const assets = await Arc59.getAssetsInInbox({ network, receiver });
+
+// Claim an asset from the inbox
+const claimTxId = await Arc59.claimAsset({ network, receiver, assetId });
+
+// Reject an asset from the inbox
+const rejectTxId = await Arc59.rejectAsset({ network, receiver, assetId });
+```
+
+### Arc62 Class
+
+```javascript
+// Check if an asset is ARC-62 compatible
+const result = await Arc62.isArc62Compatible(assetId, network);
+// result.compatible: boolean
+// result.applicationId: number
+
+// Get the circulating supply (uses on-chain method or fallback)
+const supply = await Arc62.getCirculatingSupply(assetId, network);
 ```
 
 ### IPFS Class
