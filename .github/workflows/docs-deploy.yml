@@ -4,19 +4,31 @@ on:
   workflow_dispatch:
   push:
     paths-ignore:
-    - '.github/**' # Ignore changes towards the .github directory
+      - '.github/**'
     branches:
-    - main
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Perform Checkout
-      uses: actions/checkout@v2
-    - name: Deploy
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs
-        publish_branch: gh-pages
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Prepare deploy directory
+        run: |
+          mkdir -p publish/docs
+          mkdir -p publish/usecase
+          
+          # Copy ./docs -> /docs
+          cp -r docs/* publish/docs/
+          
+          # Copy ./usecase/arcraft-frontend/dist -> /usecase
+          cp -r usecase/arcraft-frontend/dist/* publish/usecase/
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./publish
+          publish_branch: gh-pages
