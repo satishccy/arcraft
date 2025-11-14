@@ -84,23 +84,23 @@ function HomePage() {
 
           <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             <FeatureCard
-              title="Multi-ARC Support"
-              description="Create NFTs using ARC-3, ARC-19, and ARC-69 standards with a unified interface"
-              icon="🎨"
+              title="Comprehensive ARC Support"
+              description="Unified interface for major standards: ARC-3, 19, 54, 59, 62, 69, and 82"
+              icon="📚"
             />
             <FeatureCard
               title="Asset Burning (ARC-54)"
-              description="Permanently burn ASAs using the standardized ARC-54 burning application"
+              description="Permanently burn ASAs using a standardized, on-chain application"
               icon="🔥"
             />
             <FeatureCard
               title="Asset Inbox (ARC-59)"
-              description="Send assets without requiring receiver opt-in using ARC-59 inbox system"
+              description="Send assets without requiring receiver opt-in using a secure inbox system"
               icon="📬"
             />
             <FeatureCard
               title="Circulating Supply (ARC-62)"
-              description="Check asset circulating supply with ARC-62 standardized calculation"
+              description="Get verifiable, on-chain circulating supply for any asset"
               icon="📊"
             />
             <FeatureCard
@@ -109,9 +109,24 @@ function HomePage() {
               icon="🗄️"
             />
             <FeatureCard
-              title="Blockchain Queries"
-              description="Query application and asset data using ARC-82 URI standards"
+              title="Blockchain Queries (ARC-82)"
+              description="Query application and asset data using standardized URI schemes"
               icon="🔍"
+            />
+            <FeatureCard
+              title="Metadata Versioning"
+              description="Track and manage NFT metadata versions for ARC-19 and ARC-69"
+              icon="📝"
+            />
+            <FeatureCard
+              title="Cross-Platform"
+              description="Works seamlessly in both Node.js and browser environments"
+              icon="🌐"
+            />
+            <FeatureCard
+              title="TypeScript First"
+              description="Full type definitions for a superior and safer development experience"
+              icon="⚡"
             />
           </div>
         </div>
